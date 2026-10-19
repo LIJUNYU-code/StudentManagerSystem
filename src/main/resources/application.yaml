@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: demo
+
+  # 导入本地私密配置（该文件已被 .gitignore 忽略，不入版本库）
+  config:
+    import: optional:application-local.yaml
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/studentmanage?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&characterEncoding=UTF-8
+    username: root
+    password: ${DB_PASSWORD:}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+
+server:
+  port: 8080
+
+jwt:
+  # 未设置环境变量时使用本地默认值（仅开发环境；部署时必须设置强随机 JWT_SECRET）
+  secret: ${JWT_SECRET:Y2hhbmdlLW1lLWRldi1vbmx5LXNlY3JldC1iYXNlNjQtc3RyaW5nLWZvci1sb2NhbC1ydW4=}
+  expiration: 7200000
