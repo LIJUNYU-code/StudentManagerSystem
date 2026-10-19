@@ -3,6 +3,7 @@ package com.example.demo.exception;
 import com.example.demo.common.Result;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -47,6 +48,28 @@ public class GlobalExceptionHandler {
                 .collect(Collectors.joining("; "));
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Result.error(400, msg));
+    }
+
+    /** GET 查询参数 / 表单绑定的校验失败（@ModelAttribute + @Valid 抛 BindException） */
+    @ExceptionHandler(BindException.class)
+    public ResponseEntity<Result<Void>> handleBind(BindException e) {
+        String msg = e.getFieldErrors().stream()
+                .map(f -> f.getField() + ": " + f.getDefaultMessage())
+                .collect(Collectors.joining("; "));
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Result.error(400, msg));
+    }
+
+    /** 业务规则异常：Service 层用 (code, message) 表达可预期的失败 */
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<Result<Void>> handleBusiness(BusinessException e) {
+        int code = e.getCode() >= 400 && e.getCode() < 600 ? e.getCode() : 400;
+        HttpStatus status = HttpStatus.resolve(code);
+        if (status == null) {
+            status = HttpStatus.BAD_REQUEST;
+        }
+        return ResponseEntity.status(status)
+                .body(Result.error(code, e.getMessage()));
     }
 
     /** 路径参数类型错误（如 /student/abc） */

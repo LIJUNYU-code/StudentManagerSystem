@@ -49,6 +49,13 @@
             <version>3.5.17</version>
         </dependency>
 
+        <!-- MyBatis-Plus 分页插件所需（3.5.9+ 拆分出独立构件，内部用 jsqlparser 解析分页 SQL） -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-jsqlparser</artifactId>
+            <version>3.5.17</version>
+        </dependency>
+
         <!-- MySQL 数据库驱动 -->
         <dependency>
             <groupId>com.mysql</groupId>

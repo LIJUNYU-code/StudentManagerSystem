@@ -1,9 +1,12 @@
 package com.example.demo.service;
 
+import com.example.demo.common.PageResult;
 import com.example.demo.dto.LoginRequestDTO;
 import com.example.demo.dto.LoginResponseDTO;
 import com.example.demo.dto.RegisterRequestDTO;
+import com.example.demo.dto.StudentQueryDTO;
 import com.example.demo.dto.StudentResponse;
+import com.example.demo.dto.StudentUpdateRequestDTO;
 import com.example.demo.entity.Student;
 
 /**
@@ -27,4 +30,13 @@ public interface StudentService {
 
     /** 学生登录（学号 + 密码） */
     LoginResponseDTO login(LoginRequestDTO dto);
+
+    /** 分页 + 条件查询学生列表 */
+    PageResult<StudentResponse> page(StudentQueryDTO query);
+
+    /** 更新学生信息（只更新传入的非空字段） */
+    StudentResponse update(Long id, StudentUpdateRequestDTO dto);
+
+    /** 逻辑删除学生 */
+    void delete(Long id);
 }
