@@ -2,4 +2,4 @@
 # 在 application-local.yaml 中填入你的真实本地密码。
 spring:
   datasource:
-    password: "your-real-db-password-here"
+    password: "123456"

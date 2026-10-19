@@ -30,15 +30,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
-        // TODO 1：从请求头读取 Authorization
+        //  1：从请求头读取 Authorization
         String authorization = request.getHeader("Authorization");
-        // TODO 2：判断是否以 "Bearer " 开头
+        //  2：判断是否以 "Bearer " 开头
         if( authorization == null || (!authorization.startsWith("Bearer "))){
             filterChain.doFilter(request,response);
             return;
         }
 
-        // TODO 3：提取 Token，调用 jwtUtil.parseToken(token)
+        //  3：提取 Token，调用 jwtUtil.parseToken(token)
         String token = authorization.substring(7);
 
         try {

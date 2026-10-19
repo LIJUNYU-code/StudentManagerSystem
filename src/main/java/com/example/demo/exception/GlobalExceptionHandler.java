@@ -1,6 +1,9 @@
 package com.example.demo.exception;
 
 import com.example.demo.common.Result;
+import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindException;
@@ -18,6 +21,8 @@ import java.util.stream.Collectors;
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     /** 资源不存在（学生/班级等查无此 id） */
     @ExceptionHandler(StudentNotFoundException.class)
@@ -98,8 +103,9 @@ public class GlobalExceptionHandler {
 
     /** 兜底：未预期的异常，返回 500 但不向客户端泄露堆栈细节 */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Result<Void>> handleUnexpected(Exception e) {
-        // TODO 阶段6：接入日志框架后，这里要记录完整堆栈到日志，而不是只返回提示
+    public ResponseEntity<Result<Void>> handleUnexpected(Exception e, HttpServletRequest request) {
+        // 完整堆栈进日志（控制台/文件），客户端只看到友好提示
+        log.error("Unhandled exception on {} {}", request.getMethod(), request.getRequestURI(), e);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Result.error(500, "服务器内部错误"));
     }
