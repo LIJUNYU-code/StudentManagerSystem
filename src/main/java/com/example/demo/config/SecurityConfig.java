@@ -40,6 +40,17 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
 
+                // 未认证（无/无效 token）返回 401，而不是默认的 403，
+                // 语义更准确：401=没登录，403=登录了但权限不够
+                .exceptionHandling(eh -> eh
+                        .authenticationEntryPoint((request, response, ex) -> {
+                            response.setStatus(401);
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.getWriter().write(
+                                    "{\"code\":401,\"message\":\"未登录或登录已过期\",\"data\":null}");
+                        })
+                )
+
                 // 不使用默认表单登录和 HTTP Basic 登录
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
