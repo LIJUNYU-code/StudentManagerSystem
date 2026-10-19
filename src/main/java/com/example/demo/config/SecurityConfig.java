@@ -40,7 +40,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
 
-                // 未认证（无/无效 token）返回 401，而不是默认的 403，0
+                // 未认证（无/无效 token）返回 401，而不是默认的 403，
                 // 语义更准确：401=没登录，403=登录了但权限不够
                 .exceptionHandling(eh -> eh
                         .authenticationEntryPoint((request, response, ex) -> {
