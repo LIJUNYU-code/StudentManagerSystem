@@ -1,0 +1,5 @@
+# 复制本文件为 application-local.yaml（该文件被 .gitignore 忽略，不会提交）
+# 在 application-local.yaml 中填入你的真实本地密码。
+spring:
+  datasource:
+    password: "your-real-db-password-here"
