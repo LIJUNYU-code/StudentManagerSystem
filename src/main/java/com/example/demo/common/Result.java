@@ -1,4 +1,4 @@
-package com.example.demo.Day1;
+package com.example.demo.common;
 
 import lombok.Data;
 

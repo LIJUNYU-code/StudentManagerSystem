@@ -1,10 +1,10 @@
-package com.example.demo.Controller;
+package com.example.demo.controller;
 
-import com.example.demo.DTO.LoginResponseDTO;
-import com.example.demo.DTO.StudentDTO;
-import com.example.demo.Day1.Result;
-import com.example.demo.Entity.Student;
-import com.example.demo.Service.StudentService;
+import com.example.demo.common.Result;
+import com.example.demo.dto.LoginResponseDTO;
+import com.example.demo.dto.StudentDTO;
+import com.example.demo.entity.Student;
+import com.example.demo.service.StudentService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;

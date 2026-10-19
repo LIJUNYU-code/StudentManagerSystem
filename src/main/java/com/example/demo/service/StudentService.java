@@ -1,8 +1,8 @@
-package com.example.demo.Service;
+package com.example.demo.service;
 
-import com.example.demo.DTO.LoginResponseDTO;
-import com.example.demo.DTO.StudentDTO;
-import com.example.demo.Entity.Student;
+import com.example.demo.dto.LoginResponseDTO;
+import com.example.demo.dto.StudentDTO;
+import com.example.demo.entity.Student;
 
 public interface StudentService {
 

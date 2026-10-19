@@ -1,9 +1,6 @@
-package com.example.demo.ExceptionHandler;
+package com.example.demo.exception;
 
-import com.example.demo.Day1.Result;
-import com.example.demo.Exception.NameOrPasswordError;
-import com.example.demo.Exception.StudentHasExisit;
-import com.example.demo.Exception.StudentNotFoundException;
+import com.example.demo.common.Result;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -21,8 +18,8 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
     }
 
-    @ExceptionHandler
-    public ResponseEntity<Result<Void>> handleStudentHasExisit(StudentHasExisit e) {
+    @ExceptionHandler(StudentAlreadyExistsException.class)
+    public ResponseEntity<Result<Void>> handleStudentAlreadyExists(StudentAlreadyExistsException e) {
         Result<Void> result = Result.error(409, e.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(result);
     }
