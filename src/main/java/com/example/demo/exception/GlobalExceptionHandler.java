@@ -117,4 +117,5 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Result.error(400, "请求体格式错误：请检查 JSON 语法和字段类型"));
     }
+
 }

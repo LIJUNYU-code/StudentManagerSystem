@@ -6,7 +6,7 @@ import com.example.demo.dto.LoginRequestDTO;
 import com.example.demo.dto.LoginResponseDTO;
 import com.example.demo.dto.RegisterRequestDTO;
 import com.example.demo.dto.StudentQueryDTO;
-import com.example.demo.dto.StudentResponse;
+import com.example.demo.vo.StudentResponse;
 import com.example.demo.dto.StudentUpdateRequestDTO;
 import com.example.demo.service.StudentService;
 import jakarta.validation.Valid;
