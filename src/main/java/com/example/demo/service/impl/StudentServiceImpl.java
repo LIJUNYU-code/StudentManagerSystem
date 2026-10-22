@@ -101,7 +101,7 @@ public class StudentServiceImpl implements StudentService {
         if (student == null || !passwordEncoder.matches(dto.getPassword(), student.getPassword())) {
             throw new InvalidCredentialsException("学号或密码错误");
         }
-        String token = jwtUtil.generateToken(student.getId(), student.getName());
+        String token = jwtUtil.generateToken(student.getId(), student.getName(),"student");
         return LoginResponseDTO.builder()
                 .id(student.getId())
                 .studentNo(student.getStudentNo())

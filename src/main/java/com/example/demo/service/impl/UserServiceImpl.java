@@ -52,7 +52,7 @@ public class UserServiceImpl implements UserService {
             throw new BusinessException(403,"用户已被禁用");
         }
 
-        String token = jwtUtil.generateToken(user.getId(),user.getUsername());
+        String token = jwtUtil.generateToken(user.getId(),user.getUsername(),user.getRole());
         return UserLoginResponseDTO.builder()
                 .id(user.getId())
                 .username(user.getUsername())
