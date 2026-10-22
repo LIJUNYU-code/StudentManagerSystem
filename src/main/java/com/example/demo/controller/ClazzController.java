@@ -1,14 +1,15 @@
 package com.example.demo.controller;
 
-import com.example.demo.vo.ClazzResponse;
 import com.example.demo.common.PageResult;
 import com.example.demo.common.Result;
 import com.example.demo.dto.ClazzQueryDTO;
 import com.example.demo.dto.ClazzRequestDTO;
 import com.example.demo.dto.ClazzUpdateRequestDTO;
 import com.example.demo.service.ClazzService;
+import com.example.demo.vo.ClazzResponse;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,12 +19,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+
 @RestController
 @RequestMapping("/clazz")
 @AllArgsConstructor
 public class ClazzController {
 
     private final ClazzService clazzService;
+
+    @PreAuthorize("hasAnyRole('TEACHER','ADMIN')")
     @PostMapping
     public Result<Void> addClazz(@Valid @RequestBody ClazzRequestDTO clazzRequestDTO ){
         clazzService.add(clazzRequestDTO);
@@ -39,13 +43,18 @@ public class ClazzController {
     public Result<PageResult<ClazzResponse>> page(@Valid  ClazzQueryDTO clazzQueryDTO){
         return Result.success(clazzService.page(clazzQueryDTO));
     }
+
+    @PreAuthorize("hasAnyRole('TEACHER','ADMIN')")
     @PutMapping("/{id}")
+
     public Result<ClazzResponse> update(@PathVariable Long id,
                          @Valid@RequestBody ClazzUpdateRequestDTO clazzUpdateRequestDTO){
         ClazzResponse newClazz = clazzService.update(id, clazzUpdateRequestDTO);
         return Result.success(newClazz);
     }
 
+
+    @PreAuthorize("hasAnyRole('TEACHER','ADMIN')")
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
         clazzService.delete(id);

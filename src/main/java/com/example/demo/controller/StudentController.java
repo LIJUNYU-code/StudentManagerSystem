@@ -6,10 +6,11 @@ import com.example.demo.dto.LoginRequestDTO;
 import com.example.demo.dto.LoginResponseDTO;
 import com.example.demo.dto.RegisterRequestDTO;
 import com.example.demo.dto.StudentQueryDTO;
-import com.example.demo.vo.StudentResponse;
 import com.example.demo.dto.StudentUpdateRequestDTO;
 import com.example.demo.service.StudentService;
+import com.example.demo.vo.StudentResponse;
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
  * - 更新用 PUT，删除用 DELETE，查询用 GET
  * - 方法名小写驼峰；返回统一 Result 结构
  */
+
 @RestController
 @RequestMapping("/student")
 public class StudentController {
@@ -59,6 +61,10 @@ public class StudentController {
     }
 
     /** 更新学生信息（只更新传入的非空字段） */
+
+
+
+    @PreAuthorize("hasAnyRole('TEACHER','ADMIN')")
     @PutMapping("/{id}")
     public Result<StudentResponse> update(@PathVariable Long id,
                                           @Valid @RequestBody StudentUpdateRequestDTO dto) {
@@ -66,6 +72,7 @@ public class StudentController {
     }
 
     /** 逻辑删除学生 */
+    @PreAuthorize("hasAnyRole('TEACHER','ADMIN')")
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
         studentService.delete(id);
