@@ -49,6 +49,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             Claims claims = jwtUtil.parseToken(token);
             Long id = Long.valueOf(claims.getSubject());
+
             String role = claims.get("role", String.class);
             List<SimpleGrantedAuthority> authorities = (role == null)
                     ? Collections.emptyList()

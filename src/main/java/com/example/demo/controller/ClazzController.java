@@ -46,7 +46,6 @@ public class ClazzController {
 
     @PreAuthorize("hasAnyRole('TEACHER','ADMIN')")
     @PutMapping("/{id}")
-
     public Result<ClazzResponse> update(@PathVariable Long id,
                          @Valid@RequestBody ClazzUpdateRequestDTO clazzUpdateRequestDTO){
         ClazzResponse newClazz = clazzService.update(id, clazzUpdateRequestDTO);

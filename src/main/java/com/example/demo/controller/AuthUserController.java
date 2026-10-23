@@ -12,9 +12,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+
 @RestController
-@RequestMapping("/auth")
+
 @AllArgsConstructor
+@RequestMapping("/auth")
 public class AuthUserController {
 
     private final  UserService userService;
@@ -30,7 +32,6 @@ public class AuthUserController {
         UserLoginResponseDTO login = userService.login(userLoginRequestDTO);
         return Result.success(login);
     }
-
 
 
 }
