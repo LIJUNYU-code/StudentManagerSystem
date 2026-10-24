@@ -22,10 +22,10 @@ public class Enrollment {
     private Long studentId;
 
     private Long courseId;
-    
+
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
 
-    @TableField(fill = FieldFill.INSERT)
+    @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
 }
