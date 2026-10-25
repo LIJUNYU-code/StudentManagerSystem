@@ -10,10 +10,11 @@ const route = useRoute()
 const auth = useAuthStore()
 
 // 全部菜单；visible 返回 false 的项按角色隐藏
+// 权限对齐后端 @PreAuthorize：学生端仅二期开发自助查询，当前所有管理菜单仅教师/管理员可见
 const allMenus = [
-  { path: '/students', label: '学生管理', icon: '👤', visible: () => true },
+  { path: '/students', label: '学生管理', icon: '👤', visible: () => !auth.isStudent },
   { path: '/clazzes', label: '班级管理', icon: '🏫', visible: () => !auth.isStudent },
-  { path: '/courses', label: '课程管理', icon: '📚', visible: () => true },
+  { path: '/courses', label: '课程管理', icon: '📚', visible: () => !auth.isStudent },
   { path: '/scores', label: '选课与成绩', icon: '📝', visible: () => !auth.isStudent },
   { path: '/admin/users', label: '用户审核', icon: '🛡️', visible: () => auth.isAdmin },
 ]
