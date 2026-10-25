@@ -46,13 +46,6 @@ async function handleLogin() {
 
 <template>
   <div class="login-page">
-    <!-- 背景光斑层：纯 CSS 多层径向渐变，苹果发布会式深邃感，零图片依赖 -->
-    <div class="bg-glow">
-      <span class="glow g1"></span>
-      <span class="glow g2"></span>
-      <span class="glow g3"></span>
-    </div>
-
     <div class="login-card">
       <div class="logo">
         <span class="logo-dot"></span>
@@ -94,43 +87,12 @@ async function handleLogin() {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  /* 深色底 + 光斑：苹果 macOS Sonoma 壁纸气质 */
-  background: #0b0d14;
-}
-
-/* ---- 背景光斑 ---- */
-.bg-glow {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-.glow {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(90px);
-  opacity: 0.55;
-}
-.g1 {
-  width: 640px;
-  height: 640px;
-  left: -160px;
-  top: -180px;
-  background: radial-gradient(circle, #0a84ff 0%, transparent 70%);
-}
-.g2 {
-  width: 560px;
-  height: 560px;
-  right: -140px;
-  bottom: -160px;
-  background: radial-gradient(circle, #5e5ce6 0%, transparent 70%);
-}
-.g3 {
-  width: 420px;
-  height: 420px;
-  left: 42%;
-  top: 55%;
-  background: radial-gradient(circle, #30d158 0%, transparent 72%);
-  opacity: 0.32;
+  /* 背景：程序生成的 macOS Sonoma 风格渐变图（assets/login-bg.png），
+     cover 铺满 + 深色遮罩压暗边缘，保证卡片和文字对比度 */
+  background:
+    linear-gradient(rgba(8, 10, 18, 0.35), rgba(8, 10, 18, 0.5)),
+    url('@/assets/login-bg.png') center / cover no-repeat,
+    #0b0d14; /* 图加载失败时的兜底色 */
 }
 
 /* ---- 登录卡：加大加宽，深色玻璃 ---- */
