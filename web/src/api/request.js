@@ -27,18 +27,20 @@ request.interceptors.response.use(
   // 例：后端返回 {data:[...],code:200}，页面拿到的就是 [...]。
   (response) => response.data.data,
 
-  // 失败：统一弹错误消息；401 额外踢回登录页。
+  // 失败：统一弹错误消息；401 分两种语义区别处理。
   (error) => {
     const status = error.response?.status
     const message = error.response?.data?.message || '网络异常或服务器无响应'
+    // 登录接口自身的 401 = 账号或密码错，不是"登录失效"——不能 logout（本来就没登录）、不能跳转
+    const isLoginRequest = error.config?.url?.includes('/login')
 
-    if (status === 401) {
+    if (status === 401 && !isLoginRequest) {
       // token 缺失/过期/伪造：清登录态回登录页（全站只在这一处处理）
       useAuthStore().logout()
       router.push('/login')
       ElMessage.error('登录已失效，请重新登录')
     } else {
-      // 400/403/404/409...：后端的 message 已经是人类可读的（如"班级名已存在"），直接展示
+      // 登录失败、400/403/404/409...：后端的 message 已经是人类可读的，直接展示
       ElMessage.error(message)
     }
     return Promise.reject(error)
