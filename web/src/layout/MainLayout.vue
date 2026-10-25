@@ -183,6 +183,9 @@ function handleLogout() {
   --el-table-border-color: rgba(255, 255, 255, 0.10);
   --el-table-text-color: rgba(245, 245, 247, 0.85);
   --el-table-header-text-color: rgba(245, 245, 247, 0.55);
+  /* 斑马纹：Element Plus 用全局填充色变量画条纹，不覆盖就是白色条块 */
+  --el-fill-color-lighter: rgba(255, 255, 255, 0.04);
+  --el-fill-color: rgba(255, 255, 255, 0.06);
   background: transparent;
 }
 .content :deep(.el-table__empty-text) { color: rgba(245, 245, 247, 0.5); }
@@ -196,11 +199,30 @@ function handleLogout() {
 .content :deep(.el-input__inner),
 .content :deep(.el-select__placeholder) { color: rgba(245, 245, 247, 0.9); }
 .content :deep(.el-input__inner::placeholder) { color: rgba(245, 245, 247, 0.4); }
-.content :deep(.el-pagination) { --el-pagination-text-color: rgba(245,245,247,0.7); --el-pagination-button-disabled-bg-color: transparent; }
-.content :deep(.el-pagination button) { background-color: transparent !important; color: rgba(245,245,247,0.7); }
-.content :deep(.el-pager li) { background: transparent; color: rgba(245,245,247,0.7); }
+.content :deep(.el-pagination) { --el-pagination-text-color: rgba(245,245,247,0.9); --el-pagination-button-disabled-bg-color: transparent; }
+.content :deep(.el-pagination button) { background-color: transparent !important; color: rgba(245,245,247,0.85); }
+.content :deep(.el-pagination__total),
+.content :deep(.el-pagination__jump) { color: rgba(245,245,247,0.85); }
+.content :deep(.el-pager li) { background: transparent; color: rgba(245,245,247,0.85); }
 .content :deep(.el-pager li.is-active) { color: #fff; background: rgba(10, 132, 255, 0.4); border-radius: 6px; }
 .content :deep(.el-dialog) { background: #1e202e; border: 1px solid rgba(255,255,255,0.10); }
 .content :deep(.el-dialog__title) { color: #f5f5f7; }
 .content :deep(.el-form-item__label) { color: rgba(245, 245, 247, 0.7); }
+/* 下拉/日期等弹层的下拉框、10/page 选择器暗色化 */
+.content :deep(.el-select-dropdown) { background: #1e202e; border-color: rgba(255,255,255,0.1); }
+.content :deep(.el-select-dropdown__item) { color: rgba(245,245,247,0.85); }
+.content :deep(.el-select-dropdown__item.hover),
+.content :deep(.el-select-dropdown__item:hover) { background: rgba(255,255,255,0.08); }
+.content :deep(.el-select-dropdown__item.selected) { color: #7cb8ff; }
+/* 默认按钮（查询等 plain/default 按钮在深色底上） */
+.content :deep(.el-button--default) {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: rgba(245, 245, 247, 0.9);
+}
+.content :deep(.el-button--default:hover) {
+  background-color: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+}
 </style>
