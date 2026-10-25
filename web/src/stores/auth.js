@@ -11,7 +11,8 @@ export const useAuthStore = defineStore('auth', {
     // userType: 'teacher' | 'student'，决定登录后请求走 /auth/login 还是 /student/login
     userType: localStorage.getItem('auth:userType') || '',
     // role: 'TEACHER' | 'ADMIN' | 'STUDENT'（从 JWT payload 解码，仅用于菜单显隐；真正的权限拦截在后端）
-    role: localStorage.getItem('auth:role') || '',
+    // 注意：恢复时统一转大写——旧版本 localStorage 里可能存着小写 'admin'，不归一化会再次触发守卫死循环
+    role: (localStorage.getItem('auth:role') || '').toUpperCase(),
   }),
 
   getters: {
@@ -28,7 +29,9 @@ export const useAuthStore = defineStore('auth', {
     decodeRole(jwt) {
       try {
         const payload = JSON.parse(atob(jwt.split('.')[1]))
-        return payload.role || ''
+        // 统一转大写：后端 DB 里 role 存的是小写（'admin'/'teacher'），
+        // 前端所有判断（meta.roles、isAdmin）都基于大写。单一事实来源，避免再犯大小写不一致。
+        return String(payload.role || '').toUpperCase()
       } catch {
         return ''
       }

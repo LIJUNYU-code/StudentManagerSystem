@@ -80,7 +80,7 @@ onMounted(load)
       <el-table-column prop="username" label="用户名" min-width="120" />
       <el-table-column prop="realName" label="姓名" min-width="100" />
       <el-table-column prop="role" label="角色" width="100">
-        <template #default="{ row }">{{ row.role === 'ADMIN' ? '管理员' : '教师' }}</template>
+        <template #default="{ row }">{{ row.role?.toUpperCase() === 'ADMIN' ? '管理员' : '教师' }}</template>
       </el-table-column>
       <el-table-column label="状态" width="100">
         <template #default="{ row }">
