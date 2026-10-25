@@ -39,3 +39,4 @@ export const addEnrollment = (data) => request.post('/enrollments', data) // {st
 // ---------- 成绩 ----------
 export const listScores = (params) => request.get('/scores', { params }) // {courseId,page,pageSize}
 export const addScore = (data) => request.post('/scores', data)
+export const listScoresMy = () => request.get('/scores/my') // 学生查自己的成绩（后端从 token 取身份）

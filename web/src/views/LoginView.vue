@@ -35,7 +35,7 @@ async function handleLogin() {
         : { studentNo: form.account, password: form.password }
     await auth.login(mode.value, payload)
     ElMessage.success('欢迎回来')
-    router.push('/students')
+    router.push(mode.value === 'student' ? '/home' : '/students')
   } catch {
     // 错误提示已由 axios 拦截器统一弹出（401 会显示后端的 message）
   } finally {
@@ -46,6 +46,13 @@ async function handleLogin() {
 
 <template>
   <div class="login-page">
+    <!-- 背景光斑层：纯 CSS 多层径向渐变，苹果发布会式深邃感，零图片依赖 -->
+    <div class="bg-glow">
+      <span class="glow g1"></span>
+      <span class="glow g2"></span>
+      <span class="glow g3"></span>
+    </div>
+
     <div class="login-card">
       <div class="logo">
         <span class="logo-dot"></span>
@@ -73,77 +80,151 @@ async function handleLogin() {
 
       <p class="hint">教师账号需管理员审核通过后才能登录</p>
     </div>
+
+    <footer class="page-foot">ClassHub · 学生一体化管理平台</footer>
   </div>
 </template>
 
 <style scoped>
 .login-page {
-  height: 100vh;
+  position: relative;
+  min-height: 100vh;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  /* 柔和渐变底：淡灰到淡蓝，苹果发布会页同款气质 */
-  background: linear-gradient(160deg, #f5f5f7 0%, #e8eef5 55%, #dfe9f3 100%);
+  overflow: hidden;
+  /* 深色底 + 光斑：苹果 macOS Sonoma 壁纸气质 */
+  background: #0b0d14;
 }
 
+/* ---- 背景光斑 ---- */
+.bg-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.55;
+}
+.g1 {
+  width: 640px;
+  height: 640px;
+  left: -160px;
+  top: -180px;
+  background: radial-gradient(circle, #0a84ff 0%, transparent 70%);
+}
+.g2 {
+  width: 560px;
+  height: 560px;
+  right: -140px;
+  bottom: -160px;
+  background: radial-gradient(circle, #5e5ce6 0%, transparent 70%);
+}
+.g3 {
+  width: 420px;
+  height: 420px;
+  left: 42%;
+  top: 55%;
+  background: radial-gradient(circle, #30d158 0%, transparent 72%);
+  opacity: 0.32;
+}
+
+/* ---- 登录卡：加大加宽，深色玻璃 ---- */
 .login-card {
-  width: 380px;
-  background: rgba(255, 255, 255, 0.78);
-  backdrop-filter: blur(24px);
-  border-radius: 20px;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.10);
-  padding: 40px 36px 28px;
+  position: relative;
+  z-index: 1;
+  width: 480px;
+  max-width: calc(100vw - 48px);
+  background: rgba(28, 30, 40, 0.62);
+  backdrop-filter: blur(28px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 24px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+  padding: 52px 56px 40px;
   text-align: center;
+  color: #f5f5f7;
 }
 
 .logo {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-size: 22px;
+  gap: 10px;
+  font-size: 26px;
   font-weight: 700;
+  color: #fff;
 }
 .logo-dot {
-  width: 12px;
-  height: 12px;
+  width: 13px;
+  height: 13px;
   border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 0 5px rgba(0, 113, 227, 0.14);
+  background: #0a84ff;
+  box-shadow: 0 0 0 6px rgba(10, 132, 255, 0.22);
 }
-.slogan { color: var(--text-2); font-size: 13px; margin: 6px 0 22px; }
+.slogan { color: rgba(245, 245, 247, 0.65); font-size: 14px; margin: 8px 0 26px; }
 
 .segment {
   display: flex;
-  background: rgba(120, 120, 128, 0.12);
-  border-radius: 9px;
-  padding: 3px;
-  margin-bottom: 22px;
+  background: rgba(120, 120, 128, 0.24);
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 26px;
 }
 .segment button {
   flex: 1;
   border: none;
   background: transparent;
-  padding: 7px 0;
-  font-size: 13px;
+  padding: 9px 0;
+  font-size: 14px;
   font-family: inherit;
-  border-radius: 7px;
+  border-radius: 8px;
   cursor: pointer;
-  color: var(--text);
+  color: rgba(245, 245, 247, 0.75);
   transition: all 0.15s;
 }
 .segment button.on {
-  background: #fff;
+  background: rgba(255, 255, 255, 0.92);
+  color: #1d1d1f;
   font-weight: 600;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
+
+/* 深色卡内的输入框：覆盖 Element Plus 浅色默认 */
+.login-card :deep(.el-input__wrapper) {
+  background: rgba(255, 255, 255, 0.10);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.16) inset;
+  border-radius: 10px;
+}
+.login-card :deep(.el-input__wrapper.is-focus) {
+  box-shadow: 0 0 0 1.5px #0a84ff inset;
+}
+.login-card :deep(.el-input__inner) { color: #f5f5f7; }
+.login-card :deep(.el-input__inner::placeholder) { color: rgba(245, 245, 247, 0.42); }
+.login-card :deep(.el-input__suffix) { color: rgba(245, 245, 247, 0.55); }
 
 .login-btn {
   width: 100%;
-  border-radius: 10px;
+  height: 46px;
+  border-radius: 12px;
   font-weight: 600;
-  letter-spacing: 4px;
-  margin-top: 4px;
+  font-size: 16px;
+  letter-spacing: 6px;
+  margin-top: 6px;
+  background: linear-gradient(180deg, #0a84ff, #0071e3);
+  border: none;
 }
+.login-btn:hover { background: linear-gradient(180deg, #2492ff, #0a84ff); }
 
-.hint { font-size: 12px; color: var(--text-2); margin-top: 16px; }
+.hint { font-size: 12px; color: rgba(245, 245, 247, 0.45); margin-top: 18px; }
+
+.page-foot {
+  position: relative;
+  z-index: 1;
+  margin-top: 40px;
+  font-size: 12px;
+  color: rgba(245, 245, 247, 0.35);
+}
 </style>

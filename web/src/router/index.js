@@ -3,7 +3,7 @@ import MainLayout from '@/layout/MainLayout.vue'
 import { useAuthStore } from '@/stores/auth'
 import StudentHomeView from '@/views/StudentHomeView.vue'
 
-// 按角色决定登录后的落地页：学生进占位页，教师/管理员进学生管理
+// 按角色决定登录后的落地页：学生进首页（成绩概览），教师/管理员进学生管理
 function homeByRole() {
   const auth = useAuthStore()
   return auth.isStudent ? '/home' : '/students'
@@ -24,7 +24,7 @@ const router = createRouter({
       component: MainLayout,
       redirect: () => homeByRole(),
       children: [
-        { path: 'home', name: 'studentHome', component: StudentHomeView, meta: { title: '首页' } },
+        { path: 'home', name: 'studentHome', component: StudentHomeView, meta: { title: '首页', roles: ['student'] } },
         { path: 'students', name: 'students', component: () => import('@/views/StudentsView.vue'), meta: { title: '学生管理', roles: ['teacher', 'admin'] } },
         { path: 'clazzes', name: 'clazzes', component: () => import('@/views/ClazzesView.vue'), meta: { title: '班级管理', roles: ['teacher', 'admin'] } },
         { path: 'courses', name: 'courses', component: () => import('@/views/CoursesView.vue'), meta: { title: '课程管理', roles: ['teacher', 'admin'] } },
