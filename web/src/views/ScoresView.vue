@@ -228,6 +228,6 @@ onMounted(async () => {
   margin-top: 20px;
 }
 .col-title { font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-.count { font-size: 12px; color: var(--text-2); font-weight: 400; }
+.count { font-size: 12px; color: rgba(245, 245, 247, 0.55); font-weight: 400; }
 .pager { margin-top: 14px; justify-content: flex-end; }
 </style>

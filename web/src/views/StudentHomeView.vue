@@ -142,26 +142,26 @@ onMounted(async () => {
   max-width: 1080px;
 }
 
-/* ---- 欢迎横幅 ---- */
+/* ---- 欢迎横幅：深色玻璃上用蓝色光晕渐变 ---- */
 .hero {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 30px 34px;
-  background: linear-gradient(120deg, rgba(0, 113, 227, 0.10), rgba(88, 86, 214, 0.08)), rgba(255, 255, 255, 0.8);
+  background: linear-gradient(120deg, rgba(10, 132, 255, 0.28), rgba(94, 92, 230, 0.22)), rgba(28, 30, 42, 0.72);
 }
 .hero h1 {
   margin: 0 0 6px;
   font-size: 24px;
   font-weight: 700;
-  color: var(--text);
+  color: #f5f5f7;
 }
-.hero p { margin: 0; color: var(--text-2); font-size: 14px; }
+.hero p { margin: 0; color: rgba(245, 245, 247, 0.65); font-size: 14px; }
 .hero-badge {
   font-size: 13px;
   font-weight: 600;
-  color: var(--accent);
-  background: rgba(0, 113, 227, 0.10);
+  color: #7cb8ff;
+  background: rgba(10, 132, 255, 0.16);
   padding: 6px 14px;
   border-radius: 999px;
 }
@@ -174,7 +174,7 @@ onMounted(async () => {
 }
 .stat { padding: 20px 22px; text-align: center; }
 .stat-num { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }
-.stat-label { margin-top: 4px; font-size: 12px; color: var(--text-2); }
+.stat-label { margin-top: 4px; font-size: 12px; color: rgba(245, 245, 247, 0.55); }
 
 /* ---- 内容块 ---- */
 .block { padding: 22px 24px; }
@@ -184,7 +184,7 @@ onMounted(async () => {
   justify-content: space-between;
   margin-bottom: 14px;
 }
-.block-head h2 { margin: 0; font-size: 16px; font-weight: 700; color: var(--text); }
+.block-head h2 { margin: 0; font-size: 16px; font-weight: 700; color: #f5f5f7; }
 
 .score { font-weight: 700; font-variant-numeric: tabular-nums; }
 </style>

@@ -68,10 +68,11 @@ html, body, #app {
   font-size: 26px;
   font-weight: 700;
   letter-spacing: 0.2px;
+  color: #f5f5f7;
 }
 .page-sub {
   font-size: 13px;
-  color: var(--text-2);
+  color: rgba(245, 245, 247, 0.55);
   margin-top: 2px;
 }
 

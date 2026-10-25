@@ -79,15 +79,15 @@ function handleLogout() {
   height: 100vh;
 }
 
-/* ---- 侧边栏 ---- */
+/* ---- 侧边栏：深色玻璃，与内容区背景连成一体 ---- */
 .sidebar {
   width: 216px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  background: rgba(255, 255, 255, 0.65);
-  border-right: 1px solid var(--line);
-  backdrop-filter: blur(20px);
+  background: rgba(20, 22, 34, 0.82);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(24px);
   padding: 18px 12px;
 }
 .brand {
@@ -97,13 +97,14 @@ function handleLogout() {
   font-size: 17px;
   font-weight: 700;
   padding: 6px 10px 18px;
+  color: #f5f5f7;
 }
 .brand-dot {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.15);
+  background: #0a84ff;
+  box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.22);
 }
 .nav { display: flex; flex-direction: column; gap: 2px; }
 .nav-item {
@@ -112,26 +113,26 @@ function handleLogout() {
   gap: 10px;
   padding: 9px 12px;
   border-radius: 9px;
-  color: var(--text);
+  color: rgba(245, 245, 247, 0.78);
   text-decoration: none;
   font-size: 14px;
   transition: background 0.15s;
 }
-.nav-item:hover { background: rgba(0, 0, 0, 0.05); }
+.nav-item:hover { background: rgba(255, 255, 255, 0.08); }
 .nav-item.active {
-  background: var(--accent);
+  background: linear-gradient(180deg, #0a84ff, #0071e3);
   color: #fff;
 }
 .nav-icon { font-size: 15px; }
 .sidebar-foot {
   margin-top: auto;
   font-size: 11px;
-  color: var(--text-2);
+  color: rgba(245, 245, 247, 0.4);
   text-align: center;
   padding: 10px 0 4px;
 }
 
-/* ---- 顶栏 ---- */
+/* ---- 顶栏：深色玻璃 ---- */
 .main-col { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 .topbar {
   height: 56px;
@@ -140,20 +141,66 @@ function handleLogout() {
   align-items: center;
   justify-content: space-between;
   padding: 0 28px;
-  background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--line);
+  background: rgba(20, 22, 34, 0.72);
+  backdrop-filter: blur(24px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
-.topbar-title { font-size: 15px; font-weight: 600; }
+.topbar-title { font-size: 15px; font-weight: 600; color: #f5f5f7; }
 .topbar-user { display: flex; align-items: center; gap: 10px; }
-.avatar { background: var(--accent); font-size: 13px; }
-.user-name { font-size: 13px; font-weight: 500; }
-.logout { color: var(--text-2); font-size: 13px; }
+.avatar { background: linear-gradient(180deg, #0a84ff, #0071e3); font-size: 13px; }
+.user-name { font-size: 13px; font-weight: 500; color: #f5f5f7; }
+.logout { color: rgba(245, 245, 247, 0.6); font-size: 13px; }
 
-/* ---- 内容区 ---- */
+/* ---- 内容区：全站渐变背景图（与登录页同一张），卡片浮在上面 ---- */
 .content {
   flex: 1;
   overflow-y: auto;
   padding: 26px 28px;
+  background:
+    linear-gradient(rgba(10, 12, 22, 0.72), rgba(10, 12, 22, 0.78)),
+    url('@/assets/login-bg.png') center / cover no-repeat fixed,
+    #0b0d14;
 }
+
+/* 内容区里的通用卡片在深色背景上改为玻璃浮层 */
+.content :deep(.apple-card) {
+  background: rgba(28, 30, 42, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  backdrop-filter: blur(24px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+.content :deep(.apple-card h1),
+.content :deep(.apple-card h2) {
+  color: #f5f5f7;
+}
+
+/* 深色内容区的 Element Plus 组件暗色化 */
+.content :deep(.el-table) {
+  --el-table-bg-color: transparent;
+  --el-table-tr-bg-color: transparent;
+  --el-table-header-bg-color: rgba(255, 255, 255, 0.05);
+  --el-table-row-hover-bg-color: rgba(255, 255, 255, 0.06);
+  --el-table-border-color: rgba(255, 255, 255, 0.10);
+  --el-table-text-color: rgba(245, 245, 247, 0.85);
+  --el-table-header-text-color: rgba(245, 245, 247, 0.55);
+  background: transparent;
+}
+.content :deep(.el-table__empty-text) { color: rgba(245, 245, 247, 0.5); }
+.content :deep(.el-empty__description p) { color: rgba(245, 245, 247, 0.5); }
+.content :deep(.el-tag) { background-color: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.15); color: rgba(245, 245, 247, 0.85); }
+.content :deep(.el-input__wrapper),
+.content :deep(.el-select__wrapper) {
+  background-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.14) inset;
+}
+.content :deep(.el-input__inner),
+.content :deep(.el-select__placeholder) { color: rgba(245, 245, 247, 0.9); }
+.content :deep(.el-input__inner::placeholder) { color: rgba(245, 245, 247, 0.4); }
+.content :deep(.el-pagination) { --el-pagination-text-color: rgba(245,245,247,0.7); --el-pagination-button-disabled-bg-color: transparent; }
+.content :deep(.el-pagination button) { background-color: transparent !important; color: rgba(245,245,247,0.7); }
+.content :deep(.el-pager li) { background: transparent; color: rgba(245,245,247,0.7); }
+.content :deep(.el-pager li.is-active) { color: #fff; background: rgba(10, 132, 255, 0.4); border-radius: 6px; }
+.content :deep(.el-dialog) { background: #1e202e; border: 1px solid rgba(255,255,255,0.10); }
+.content :deep(.el-dialog__title) { color: #f5f5f7; }
+.content :deep(.el-form-item__label) { color: rgba(245, 245, 247, 0.7); }
 </style>
