@@ -33,7 +33,7 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public void add(CourseRequestDTO courseRequestDTO) {
+    public CourseResponse add(CourseRequestDTO courseRequestDTO) {
         Long count = courseMapper.selectCount(new LambdaQueryWrapper<Course>().eq(Course::getName, courseRequestDTO.getName()));
         if(count != null && count>0){
             throw new BusinessException(409,"课程" + courseRequestDTO.getName() + "已经创建");
@@ -44,6 +44,8 @@ public class CourseServiceImpl implements CourseService {
                 .credit(courseRequestDTO.getCredit())
                 .build();
         courseMapper.insert(course);
+
+        return CourseResponse.from(course);
 
     }
 

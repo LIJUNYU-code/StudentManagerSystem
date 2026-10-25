@@ -41,6 +41,10 @@ application-local.yml
 web/node_modules/
 web/dist/
 
+### pnpm caches (redirected into workspace for sandbox) ###
+.pnpm-cache/
+.pnpm-store/
+
 ### Harness temp files ###
 .dsh-acl-recovery/
 .dsh-write-probe.tmp

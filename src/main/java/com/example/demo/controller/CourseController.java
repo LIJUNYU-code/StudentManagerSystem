@@ -29,9 +29,9 @@ public class CourseController {
 
     @PreAuthorize("hasAnyRole('TEACHER','ADMIN')")
     @PostMapping
-    public Result<Void> add(@Valid @RequestBody CourseRequestDTO courseRequestDTO) {
-        courseService.add(courseRequestDTO);
-        return Result.success();
+    public Result<CourseResponse> add(@Valid @RequestBody CourseRequestDTO courseRequestDTO) {
+        CourseResponse add = courseService.add(courseRequestDTO);
+        return Result.success(add);
     }
 
     @PreAuthorize("hasAnyRole('TEACHER','ADMIN')")

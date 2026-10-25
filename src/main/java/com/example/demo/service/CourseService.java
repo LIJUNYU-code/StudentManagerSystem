@@ -11,7 +11,7 @@ public interface CourseService {
 
     CourseResponse query(Long id);
 
-    void add(CourseRequestDTO courseRequestDTO);
+    CourseResponse add(CourseRequestDTO courseRequestDTO);
 
     CourseResponse update( Long id ,@Valid CourseUpdateRequestDTO courseUpdateRequestDTO);
 
