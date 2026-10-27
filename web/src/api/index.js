@@ -27,6 +27,10 @@ export const deleteEnrollment = (id) => request.delete(`/enrollments/${id}`)
 
 // ---------- 认证（教师/管理员） ----------
 export const authRegister = (data) => request.post('/auth/register', data)
+// 登出：服务端把当前 token 写进 Redis 黑名单（TTL=剩余有效期），前端同时清本地状态
+export const authLogout = () => request.post('/auth/logout')
+// 修改密码：后端校验旧密码、更新 pwd_change_time（旧 token 全部下线）、重新签发 token
+export const changePassword = (data) => request.post('/auth/password', data) // {oldPassword,newPassword}
 
 // ---------- 管理员：用户审核 ----------
 export const listAdminUsers = (params) => request.get('/admin/user', { params }) // {keyword,status,page,pageSize}

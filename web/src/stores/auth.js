@@ -2,6 +2,7 @@
 // 为什么不用一堆零散的 localStorage.getItem？——集中管理 + 响应式：改这里，顶栏用户名自动更新。
 import { defineStore } from 'pinia'
 import request from '@/api/request'
+import { changePassword as changePasswordApi } from '@/api'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -67,6 +68,23 @@ export const useAuthStore = defineStore('auth', {
       localStorage.removeItem('auth:username')
       localStorage.removeItem('auth:userType')
       localStorage.removeItem('auth:role')
+    },
+
+    /**
+     * 修改密码（阶段8 配套前端）。
+     * 后端成功后返回重新签发的 token（当前会话不掉线）——这里必须用新 token
+     * 替换本地存储，否则下一个请求还带着旧 token，会被 iat 划线直接 401。
+     * 注意：role 要从新 token 重新解码（旧 token 里的 role 已不可信）。
+     */
+    async changePassword(oldPassword, newPassword) {
+      const data = await changePasswordApi({ oldPassword, newPassword })
+      this.token = data.token
+      localStorage.setItem('auth:token', data.token)
+      if (this.userType !== 'student') {
+        this.role = this.decodeRole(data.token)
+        localStorage.setItem('auth:role', this.role)
+      }
+      return data
     },
   },
 })

@@ -59,6 +59,8 @@ pnpm dev        # 开发服务器，默认 http://localhost:5173
 | --- | --- | --- |
 | `POST /student/register`、`POST /student/login` | 学生注册/登录 | 公开 |
 | `POST /auth/register`、`POST /auth/login` | 教师注册（需 admin 审核）/登录 | 公开 |
+| `POST /auth/logout` | 登出：当前 token 进 Redis 黑名单（TTL=剩余有效期） | 登录用户 |
+| `POST /auth/password` | 修改密码：旧密码校验 + 重新签发 token，该用户所有旧 token 强制下线 | 登录用户 |
 | `/student` GET/PUT/DELETE | 学生管理（分页/筛选/逻辑删除） | teacher、admin |
 | `/clazz` | 班级 CRUD | teacher、admin |
 | `/course` | 课程 CRUD | teacher、admin |

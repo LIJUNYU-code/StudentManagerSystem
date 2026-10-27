@@ -1,9 +1,11 @@
 <script setup>
 // 主布局：左侧导航 + 毛玻璃顶栏 + 内容区。
 // 菜单按角色过滤：学生看不到「选课与成绩」（后端也有 @PreAuthorize 兜底，前端只是少显示入口）。
-import { computed } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import { useAuthStore } from '@/stores/auth'
+import { authLogout } from '@/api'
 
 const router = useRouter()
 const route = useRoute()
@@ -25,9 +27,49 @@ const roleLabel = computed(() =>
   auth.isStudent ? '学生' : auth.role === 'ADMIN' ? '管理员' : '教师'
 )
 
-function handleLogout() {
+// 登出两件事：①服务端把当前 token 写进 Redis 黑名单（防 token 泄露后继续用）
+// ②清本地状态跳登录页。顺序：先请求后清理——请求失败也照样清（本地退出优先）。
+async function handleLogout() {
+  try {
+    await authLogout()
+  } catch {
+    // 服务端登出失败（网络/Redis 异常）不阻塞本地退出
+  }
   auth.logout()
   router.push('/login')
+}
+
+// ---- 修改密码弹窗 ----
+const pwdDialogVisible = ref(false)
+const pwdFormRef = ref()
+const pwdForm = reactive({ oldPassword: '', newPassword: '', confirmPassword: '' })
+const pwdRules = {
+  oldPassword: [{ required: true, message: '请输入当前密码', trigger: 'blur' }],
+  newPassword: [
+    { required: true, message: '请输入新密码', trigger: 'blur' },
+    { min: 6, max: 32, message: '密码长度 6~32 位', trigger: 'blur' },
+    {
+      validator: (_rule, value, callback) =>
+        value === pwdForm.oldPassword ? callback(new Error('新密码不能与当前密码相同')) : callback(),
+      trigger: 'blur',
+    },
+  ],
+  confirmPassword: [
+    { required: true, message: '请再次输入新密码', trigger: 'blur' },
+    {
+      validator: (_rule, value, callback) =>
+        value !== pwdForm.newPassword ? callback(new Error('两次输入的密码不一致')) : callback(),
+      trigger: 'blur',
+    },
+  ],
+}
+
+async function submitPassword() {
+  await pwdFormRef.value.validate()
+  await auth.changePassword(pwdForm.oldPassword, pwdForm.newPassword)
+  ElMessage.success('密码修改成功，旧登录已全部失效')
+  pwdDialogVisible.value = false
+  pwdFormRef.value.resetFields()
 }
 </script>
 
@@ -62,6 +104,9 @@ function handleLogout() {
           <el-avatar :size="28" class="avatar">{{ auth.username.slice(0, 1).toUpperCase() }}</el-avatar>
           <span class="user-name">{{ auth.username }}</span>
           <el-tag size="small" effect="plain" round>{{ roleLabel }}</el-tag>
+          <!-- 学生端无 /auth/password（学生 token 的 id 对应 student 表，不是 user 表），
+               改密入口仅教师/管理员可见 -->
+          <el-button v-if="!auth.isStudent" link class="topbar-action" @click="pwdDialogVisible = true">改密</el-button>
           <el-button link class="logout" @click="handleLogout">退出</el-button>
         </div>
       </header>
@@ -70,6 +115,25 @@ function handleLogout() {
         <router-view />
       </main>
     </div>
+
+    <!-- 修改密码弹窗：仅教师/管理员可达（入口已按角色隐藏；后端 @PreAuthorize 兜底） -->
+    <el-dialog v-model="pwdDialogVisible" title="修改密码" width="400px" append-to-body>
+      <el-form ref="pwdFormRef" :model="pwdForm" :rules="pwdRules" label-width="90px">
+        <el-form-item label="当前密码" prop="oldPassword">
+          <el-input v-model="pwdForm.oldPassword" type="password" show-password autocomplete="off" />
+        </el-form-item>
+        <el-form-item label="新密码" prop="newPassword">
+          <el-input v-model="pwdForm.newPassword" type="password" show-password autocomplete="off" />
+        </el-form-item>
+        <el-form-item label="确认新密码" prop="confirmPassword">
+          <el-input v-model="pwdForm.confirmPassword" type="password" show-password autocomplete="off" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="pwdDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="submitPassword">确认修改</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -149,6 +213,7 @@ function handleLogout() {
 .topbar-user { display: flex; align-items: center; gap: 10px; }
 .avatar { background: linear-gradient(180deg, #0a84ff, #0071e3); font-size: 13px; }
 .user-name { font-size: 13px; font-weight: 500; color: #f5f5f7; }
+.topbar-action { color: rgba(245, 245, 247, 0.6); font-size: 13px; margin-left: 0; }
 .logout { color: rgba(245, 245, 247, 0.6); font-size: 13px; }
 
 /* ---- 内容区：全站渐变背景图（与登录页同一张），卡片浮在上面 ---- */
