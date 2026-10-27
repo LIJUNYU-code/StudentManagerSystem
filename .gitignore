@@ -49,3 +49,6 @@ web/dist/
 .dsh-acl-recovery/
 .dsh-write-probe.tmp
 .dsh-vision-router/
+
+### Maven local repo (offline workaround, not project code) ###
+.m2-repo-redis/
