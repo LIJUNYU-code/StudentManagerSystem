@@ -51,7 +51,7 @@ function handleLogout() {
           {{ m.label }}
         </router-link>
       </nav>
-      <div class="sidebar-foot">学生一体化管理平台</div>
+      <div class="sidebar-foot">学生教师一体化管理平台</div>
     </aside>
 
     <div class="main-col">
