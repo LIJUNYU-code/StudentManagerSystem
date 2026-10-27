@@ -48,3 +48,4 @@ web/dist/
 ### Harness temp files ###
 .dsh-acl-recovery/
 .dsh-write-probe.tmp
+.dsh-vision-router/
