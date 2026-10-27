@@ -63,7 +63,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
 
-            Long id = Long.valueOf(claims.getSubject());
+            // 阶段8：改密强制下线——iat 早于该用户 pwd_change_time 的旧票一律拒绝。
+            // 与黑名单互补：黑名单按 token 记"坏票"（登出），划线按用户记"好票有效期"（改密）。
+            Long subjectId = Long.valueOf(claims.getSubject());
+            if (tokenBlacklistService.isStaleByPasswordChange(subjectId, claims.getIssuedAt().toInstant())) {
+                SecurityContextHolder.clearContext();
+                response.sendError(
+                        HttpServletResponse.SC_UNAUTHORIZED,
+                        "密码已修改，请重新登录"
+                );
+                return;
+            }
+
+            Long id = subjectId;
 
             String role = claims.get("role", String.class);
             List<SimpleGrantedAuthority> authorities = (role == null)

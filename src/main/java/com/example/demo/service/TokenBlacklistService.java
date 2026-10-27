@@ -1,5 +1,7 @@
 package com.example.demo.service;
 
+import com.example.demo.entity.User;
+import com.example.demo.mapper.UserMapper;
 import com.example.demo.util.JwtUtil;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -8,6 +10,9 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.HexFormat;
 
 /**
@@ -24,13 +29,18 @@ import java.util.HexFormat;
 public class TokenBlacklistService {
 
     private static final String KEY_PREFIX = "auth:bl:";
+    /** 改密时间缓存：auth:pwdt:<userId>，短 TTL 兼顾"改密尽快生效"与"少查 MySQL" */
+    private static final String PWD_TIME_PREFIX = "auth:pwdt:";
+    private static final Duration PWD_TIME_TTL = Duration.ofSeconds(60);
 
     private final StringRedisTemplate redisTemplate;
     private final JwtUtil jwtUtil;
+    private final UserMapper userMapper;
 
-    public TokenBlacklistService(StringRedisTemplate redisTemplate, JwtUtil jwtUtil) {
+    public TokenBlacklistService(StringRedisTemplate redisTemplate, JwtUtil jwtUtil, UserMapper userMapper) {
         this.redisTemplate = redisTemplate;
         this.jwtUtil = jwtUtil;
+        this.userMapper = userMapper;
     }
 
     /** 登出时调用：把 token 加入黑名单，TTL = 距过期的剩余时间。 */
@@ -53,6 +63,55 @@ public class TokenBlacklistService {
     /** 过滤器调用：token 是否已被登出。 */
     public boolean isRevoked(String token) {
         return Boolean.TRUE.equals(redisTemplate.hasKey(KEY_PREFIX + digest(token)));
+    }
+
+    /**
+     * 改密强制下线（阶段8）：token 签发时间是否早于该用户最近一次改密时间。
+     *
+     * @param userId token 里的 sub（用户 id）
+     * @param issuedAt token 的 iat（签发时刻）
+     * @return true = 划线之前签发的旧票，应拒绝
+     */
+    public boolean isStaleByPasswordChange(Long userId, Instant issuedAt) {
+        LocalDateTime pwdChangeTime = getPwdChangeTime(userId);
+        if (pwdChangeTime == null) {
+            return false; // 从未改密：不做 iat 比较
+        }
+        LocalDateTime iat = LocalDateTime.ofInstant(issuedAt, ZoneId.systemDefault());
+        // 1 秒宽容窗口：改密接口里 setPwdChangeTime(now) 与 generateToken(now) 是两次
+        // 独立取时，新票的 iat 可能比划线早几毫秒，无缓冲会把刚签发的新票误杀。
+        // 代价 = 划线前 1 秒内签发的旧票多活 1 秒，可接受（JWT 惯例：时钟偏移容忍）。
+        return iat.plusSeconds(1).isBefore(pwdChangeTime);
+    }
+
+    /**
+     * 改密成功后调用：主动失效该用户的划线时间缓存。
+     *
+     * 为什么必须做：改密请求自身也会过过滤器，过滤器会把"改密前的旧划线时间"
+     * 写进缓存（TTL 60s）。若不主动删除，改密后的最长 60 秒内，旧 token 会拿着
+     * 旧划线时间被误判为"新票"放行——"改密立即下线"就被缓存打穿了。
+     * 删除后下一个请求缓存 miss，强制回源 DB 拿到新值。
+     */
+    public void invalidatePwdTimeCache(Long userId) {
+        redisTemplate.delete(PWD_TIME_PREFIX + userId);
+    }
+
+    /**
+     * 查用户最近改密时间：先查 Redis 缓存（TTL 60s），未命中回源 MySQL。
+     * 缓存的意义：每个带 token 的请求都会走到这里，不能每次都打 MySQL；
+     * 60 秒过期保证改密后最多 1 分钟内全网生效。
+     */
+    private LocalDateTime getPwdChangeTime(Long userId) {
+        String key = PWD_TIME_PREFIX + userId;
+        String cached = redisTemplate.opsForValue().get(key);
+        if (cached != null) {
+            // 缓存约定：""（空串）= 该用户从未改密，避免缓存穿透
+            return cached.isEmpty() ? null : LocalDateTime.parse(cached);
+        }
+        User user = userMapper.selectById(userId);
+        LocalDateTime pwdChangeTime = (user == null) ? null : user.getPwdChangeTime();
+        redisTemplate.opsForValue().set(key, pwdChangeTime == null ? "" : pwdChangeTime.toString(), PWD_TIME_TTL);
+        return pwdChangeTime;
     }
 
     /** SHA-256 摘要（Hex 字符串）。 */

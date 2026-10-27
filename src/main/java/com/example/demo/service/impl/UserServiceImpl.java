@@ -3,6 +3,7 @@ package com.example.demo.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.demo.common.PageResult;
+import com.example.demo.dto.ChangePasswordRequestDTO;
 import com.example.demo.dto.UserLoginRequestDTO;
 import com.example.demo.dto.UserLoginResponseDTO;
 import com.example.demo.dto.UserRegisterRequestDTO;
@@ -10,6 +11,7 @@ import com.example.demo.dto.UserReviewQueryDTO;
 import com.example.demo.entity.User;
 import com.example.demo.exception.BusinessException;
 import com.example.demo.mapper.UserMapper;
+import com.example.demo.service.TokenBlacklistService;
 import com.example.demo.service.UserService;
 import com.example.demo.util.JwtUtil;
 import com.example.demo.vo.AdminUserResponse;
@@ -17,7 +19,9 @@ import lombok.AllArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -26,6 +30,7 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final TokenBlacklistService tokenBlacklistService;
 
     @Override
     public void register(UserRegisterRequestDTO userRegisterRequestDTO) {
@@ -66,6 +71,44 @@ public class UserServiceImpl implements UserService {
                 .token(token)
                 .build();
 
+    }
+
+    @Override
+    @Transactional
+    public UserLoginResponseDTO changePassword(Long currentUserId, ChangePasswordRequestDTO dto) {
+        // 1. 取当前用户（按 id，不可能被别人冒充——id 来自过滤器验证过的 token）
+        User user = userMapper.selectById(currentUserId);
+        if (user == null) {
+            throw new BusinessException(401, "登录状态异常，请重新登录");
+        }
+
+        // 2. 旧密码必须对得上：防止 token 被盗后，盗号者直接改密霸占账号
+        if (!passwordEncoder.matches(dto.getOldPassword(), user.getPassword())) {
+            throw new BusinessException(400, "当前密码不正确");
+        }
+
+        // 3. 新旧密码不能相同（否则"改密下线"失去意义）
+        if (passwordEncoder.matches(dto.getNewPassword(), user.getPassword())) {
+            throw new BusinessException(400, "新密码不能与当前密码相同");
+        }
+
+        // 4. 更新密码 + 划线（同一事务：要么都成功，要么都不改）
+        //    pwdChangeTime = now 之后，所有 iat < now 的旧 token 全部失效
+        user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+        user.setPwdChangeTime(LocalDateTime.now());
+        userMapper.updateById(user);
+
+        // 5. 失效划线缓存：改密请求自身过过滤器时会把旧划线时间写进缓存（TTL 60s），
+        //    不删的话改密后 60 秒内旧 token 会被旧划线误放行，"立即下线"被缓存打穿
+        tokenBlacklistService.invalidatePwdTimeCache(user.getId());
+
+        // 6. 给当前用户重新签发 token（iat 晚于划线时间），当前会话不掉线
+        String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole());
+        return UserLoginResponseDTO.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .token(token)
+                .build();
     }
 
     @Override

@@ -35,6 +35,13 @@ public class User {
 
     private Integer status; //0待审核 → 1正常 → 2禁用
 
+    /**
+     * 最近一次改密时间（阶段8：改密强制下线）。
+     * 过滤器比较 token 的 iat 与本列：iat 早于改密时间的 token 一律 401。
+     * NULL = 从未改密（此时不做 iat 比较）。
+     */
+    private LocalDateTime pwdChangeTime;
+
     @TableLogic
     @JsonIgnore
     private Integer deleted;
