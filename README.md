@@ -1,62 +1,114 @@
-# StudentManagerSystem — 学生管理系统（ClassHub 前身）
+# ClassHub — 学生一体化管理平台
 
-基于 Spring Boot 的学生管理系统后端，正在按 `docs/project-planning/开发路线图.md` 逐步演进为
-学生/班级/课程/成绩一体化管理平台（内部代号 ClassHub）。
+基于 **Spring Boot 4 + Vue 3** 的学生/班级/课程/成绩一体化管理平台。
+从最初的"学生管理系统"练习项目逐步演进而来，完整开发过程见
+[docs/project-planning/](docs/project-planning/) 与 [docs/项目总结与经验复盘.md](docs/项目总结与经验复盘.md)。
+
+## 功能总览
+
+- **三角色权限（RBAC）**：admin（用户审核/禁用）、teacher（全部业务）、student（仅查自己的成绩）
+- **学生管理**：注册（学号 `S`+9 位数字、BCrypt 密文）、CRUD、分页、关键词/班级筛选、逻辑删除
+- **班级 / 课程管理**：CRUD、分页、关键词搜索、重名 409
+- **选课**：学生↔课程，联合唯一防重复选课
+- **成绩**：按课程录入（0-100 分 + 期末/期中/平时）、课程成绩单（两跳 join）、学生自助查分（角色隔离）
+- **JWT 无状态认证**：登录返回 token，401/403 语义分离，前端 axios 拦截器统一处理
 
 ## 技术栈
 
-| 组件 | 版本 |
+| 层 | 技术 |
 | --- | --- |
-| Java | 17–26（本机实际使用 JDK 26 构建） |
-| Spring Boot | 4.1.1 |
-| MyBatis-Plus | 3.5.17（spring-boot4-starter） |
-| MySQL | 8.0.x |
-| 构建工具 | Maven Wrapper（推荐配合 `D:\develop\apache-maven-3.9.15\conf\settings.xml`） |
+| 后端 | Java 17–26 · Spring Boot 4.1.1 · Spring Security(JWT) · MyBatis-Plus 3.5.17 · MySQL 8 · Maven Wrapper |
+| 前端 | Vue 3 · Vite · Element Plus · Pinia · Vue Router · Axios |
+| 测试 | JUnit 5 + Mockito（16 个单元用例）+ 手工验收清单 |
 
 ## 快速启动
 
-1. **准备数据库**：MySQL 8 中创建库名 `studentmanage`，建表脚本与结构见
-   `docs/project-planning/技术方案与数据库设计.md`。
-2. **配置本地私密信息**（密码不入 git）：
+### 后端
+
+1. MySQL 8 中创建库 `studentmanage`，按顺序执行 `sql/` 下的迁移脚本（V1→V4）；
+2. 配置私密信息（密码不入 git）：
+
    ```bash
-   # 复制模板
    cp src/main/resources/application-local.example.yaml src/main/resources/application-local.yaml
-   # 然后编辑 application-local.yaml，把占位密码替换为你的真实数据库密码
-   ```
-   也可以用环境变量 `DB_PASSWORD` 代替 local 文件。
-3. **运行**：IDEA 中直接运行 `DemoApplication`，或：
-
-   ```bash
-   mvnw.cmd spring-boot:run
+   # 编辑 application-local.yaml，把占位密码换成你的真实数据库密码
    ```
 
-4. 默认端口 `8080`，接口前缀 `/student`（规划中会迁移到 `/api` 并扩充模块）。
+3. 运行：IDEA 启动 `DemoApplication`，或 `mvnw.cmd spring-boot:run`。默认端口 8080。
 
-## 已有接口
+### 前端
 
-| 方法 | 路径 | 说明 |
+```bash
+cd web
+pnpm install    # 或 npm install
+pnpm dev        # 开发服务器，默认 http://localhost:5173
+```
+
+> Vite 已配置代理：前端请求 `/` 下的接口自动转发到 `http://localhost:8080`，无需处理跨域。
+
+### 测试账号
+
+| 账号 | 密码 | 角色 |
 | --- | --- | --- |
-| POST | `/student/register` | 注册学生（学号 S+9 位数字，BCrypt 加密存储） |
-| POST | `/student/login` | 登录（学号+密码）并返回 JWT |
-| GET | `/student/{id}` | 查询单个学生（需 `Authorization: Bearer <token>`） |
-| GET | `/student` | 分页 + 关键词/班级筛选（需登录） |
-| PUT | `/student/{id}` | 更新学生（只更新传入字段，需登录） |
-| DELETE | `/student/{id}` | 逻辑删除学生（需登录） |
+| admin | Admin@123456 | 管理员（审核教师注册） |
+| teacher_wang | Abc12345 | 教师 |
+| S200001234 | Abc12345 | 学生（登录后进学生端首页） |
+
+## 接口一览（7 组 Controller）
+
+| 前缀 | 说明 | 权限 |
+| --- | --- | --- |
+| `POST /student/register`、`POST /student/login` | 学生注册/登录 | 公开 |
+| `POST /auth/register`、`POST /auth/login` | 教师注册（需 admin 审核）/登录 | 公开 |
+| `/student` GET/PUT/DELETE | 学生管理（分页/筛选/逻辑删除） | teacher、admin |
+| `/clazz` | 班级 CRUD | teacher、admin |
+| `/course` | 课程 CRUD | teacher、admin |
+| `/enrollments` | 选课/退课 | teacher、admin |
+| `/scores`、`GET /scores/my` | 录成绩、课程成绩单、学生自助查分 | teacher / student 自助 |
+| `/admin/user` | 用户审核/禁用/列表 | admin |
+
+完整字段与用例见 [docs/验收测试清单.md](docs/验收测试清单.md)。
 
 ## 构建
 
 ```bash
-mvnw.cmd test
+# 后端：跑单元测试（16 用例）
+mvnw.cmd clean test
+
+# 后端：打包 fat-jar（阶段6.4）
+mvnw.cmd package
+
+# 前端：构建产物到 web/dist
+cd web && pnpm build
 ```
 
-> 本机若命令行仓库为空，请加 `-s "D:\develop\apache-maven-3.9.15\conf\settings.xml"`
-> 使用 IDEA 同款配置；离线验证可再加 `-o` 与
-> `-Daether.syncContext.named.factory=noop`。
+> 本机 Maven 特殊性：命令行仓库为空时请加
+> `-s "D:\develop\apache-maven-3.9.15\conf\settings.xml"`（IDEA 同款配置）；
+> 离线验证再加 `-o -Daether.syncContext.named.factory=noop`。
 
-## 相关文档
+## 项目结构
 
-- [项目现状分析](docs/project-planning/项目现状分析.md)
-- [项目方向与需求分析](docs/project-planning/项目方向与需求分析.md)
-- [技术方案与数据库设计](docs/project-planning/技术方案与数据库设计.md)
-- [资料检索清单](docs/project-planning/资料检索清单.md)
-- [开发路线图](docs/project-planning/开发路线图.md)
+```
+demo/
+├── src/main/java/com/example/demo/    # 后端（controller/service/mapper/entity/dto/config/…）
+├── src/test/java/                     # 单元测试（JwtUtil / StudentServiceImpl）
+├── sql/                               # V1–V4 数据库迁移脚本
+├── web/                               # Vue 3 前端
+│   └── src/{api,layout,router,stores,views,assets}
+└── docs/
+    ├── project-planning/              # 五份规划文档（现状/方向/技术方案/资料/路线图）
+    ├── learning/                      # 前端学习课程
+    ├── 项目总结与经验复盘.md
+    └── 验收测试清单.md
+```
+
+## Roadmap
+
+- [x] 阶段0 环境地基（git/密码出代码/包规范/README）
+- [x] 阶段1 数据库重构 + 学生 CRUD
+- [x] 阶段2 统一响应与全局异常
+- [x] 阶段3 RBAC（user 表/审核/方法级权限）
+- [x] 阶段4 课程 + 选课
+- [x] 阶段5 成绩模块 + 前端 M3
+- [x] 阶段6.1–6.2 单元测试 + 验收清单
+- [ ] 阶段6.3–6.4 README 收官 + 打包部署验证
+- [ ] 阶段7 Redis 登出黑名单（JWT 主动作废）
