@@ -1,6 +1,7 @@
 package com.example.demo.config;
 
 
+import com.example.demo.service.TokenBlacklistService;
 import com.example.demo.util.JwtUtil;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
@@ -22,9 +23,11 @@ import java.util.List;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
+    private final TokenBlacklistService tokenBlacklistService;
 
-    public JwtAuthenticationFilter(JwtUtil jwtUtil) {
+    public JwtAuthenticationFilter(JwtUtil jwtUtil, TokenBlacklistService tokenBlacklistService) {
         this.jwtUtil = jwtUtil;
+        this.tokenBlacklistService = tokenBlacklistService;
     }
 
     @Override
@@ -48,6 +51,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             Claims claims = jwtUtil.parseToken(token);
+
+            // 阶段7：登出黑名单检查——签名有效但已被登出的 token 一律拒绝。
+            // 注意顺序：先查黑名单再信任 claims，被登出的 token 不产生任何认证信息。
+            if (tokenBlacklistService.isRevoked(token)) {
+                SecurityContextHolder.clearContext();
+                response.sendError(
+                        HttpServletResponse.SC_UNAUTHORIZED,
+                        "登录已失效，请重新登录"
+                );
+                return;
+            }
+
             Long id = Long.valueOf(claims.getSubject());
 
             String role = claims.get("role", String.class);
