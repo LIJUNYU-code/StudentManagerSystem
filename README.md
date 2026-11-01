@@ -19,7 +19,7 @@
 | --- | --- |
 | 后端 | Java 17–26 · Spring Boot 4.1.1 · Spring Security(JWT) · MyBatis-Plus 3.5.17 · MySQL 8 · Maven Wrapper |
 | 前端 | Vue 3 · Vite · Element Plus · Pinia · Vue Router · Axios |
-| 测试 | JUnit 5 + Mockito（38 个单元用例）+ 51 条端到端接口用例 + 手工验收清单 |
+| 测试 | JUnit 5 + Mockito（61 个单元用例）+ 51 条端到端接口用例 + 手工验收清单 |
 
 ## 快速启动
 
@@ -74,7 +74,7 @@ pnpm dev        # 开发服务器，默认 http://localhost:5173
 ## 构建
 
 ```bash
-# 后端：跑单元测试（38 用例）
+# 后端：跑单元测试（61 用例）
 mvnw.cmd clean test
 
 # 后端：打包 fat-jar（阶段6.4）
@@ -100,7 +100,7 @@ demo/
 └── docs/
     ├── project-planning/              # 五份规划文档（现状/方向/技术方案/资料/路线图）
     ├── learning/                      # 前端学习课程
-    ├── 测试报告.md                     # 全量测试记录（38 单测 + 51 端到端）
+    ├── 测试报告.md                     # 全量测试记录（61 单测 + 51 端到端）
     ├── 部署说明.md                     # 打包与部署
     ├── 项目总结与经验复盘.md
     └── 验收测试清单.md
@@ -117,4 +117,4 @@ demo/
 - [x] 阶段6.1–6.2 单元测试 + 验收清单
 - [x] 阶段6.3–6.4 README 收官 + 打包部署验证
 - [x] 阶段7 Redis 登出黑名单 + 改密强制下线（JWT 主动作废）
-- [x] 阶段8 全量测试（38 单测 + 51 端到端）与 P0/P1 缺陷修复，见 [docs/测试报告.md](docs/测试报告.md)
+- [x] 阶段8 全量测试（61 单测 + 51 端到端）与 P0/P1 缺陷修复，见 [docs/测试报告.md](docs/测试报告.md)
