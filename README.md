@@ -19,13 +19,13 @@
 | --- | --- |
 | 后端 | Java 17–26 · Spring Boot 4.1.1 · Spring Security(JWT) · MyBatis-Plus 3.5.17 · MySQL 8 · Maven Wrapper |
 | 前端 | Vue 3 · Vite · Element Plus · Pinia · Vue Router · Axios |
-| 测试 | JUnit 5 + Mockito（16 个单元用例）+ 手工验收清单 |
+| 测试 | JUnit 5 + Mockito（16 个单元用例）+ 51 条端到端接口用例 + 手工验收清单 |
 
 ## 快速启动
 
 ### 后端
 
-1. MySQL 8 中创建库 `studentmanage`，按顺序执行 `sql/` 下的迁移脚本（V1→V4）；
+1. MySQL 8 中创建库 `studentmanage`，按顺序执行 `sql/` 下的迁移脚本（V1→V8）；
 2. 配置私密信息（密码不入 git）：
 
    ```bash
@@ -62,6 +62,7 @@ pnpm dev        # 开发服务器，默认 http://localhost:5173
 | `POST /auth/logout` | 登出：当前 token 进 Redis 黑名单（TTL=剩余有效期） | 登录用户 |
 | `POST /auth/password` | 修改密码：旧密码校验 + 重新签发 token，该用户所有旧 token 强制下线 | 登录用户 |
 | `/student` GET/PUT/DELETE | 学生管理（分页/筛选/逻辑删除） | teacher、admin |
+| `POST /student/{id}/reset-password` | 重置学生密码（教师/管理员） | teacher、admin |
 | `/clazz` | 班级 CRUD | teacher、admin |
 | `/course` | 课程 CRUD | teacher、admin |
 | `/enrollments` | 选课/退课 | teacher、admin |
@@ -93,12 +94,14 @@ cd web && pnpm build
 demo/
 ├── src/main/java/com/example/demo/    # 后端（controller/service/mapper/entity/dto/config/…）
 ├── src/test/java/                     # 单元测试（JwtUtil / StudentServiceImpl）
-├── sql/                               # V1–V4 数据库迁移脚本
+├── sql/                               # V1–V8 数据库迁移脚本
 ├── web/                               # Vue 3 前端
 │   └── src/{api,layout,router,stores,views,assets}
 └── docs/
     ├── project-planning/              # 五份规划文档（现状/方向/技术方案/资料/路线图）
     ├── learning/                      # 前端学习课程
+    ├── 测试报告.md                     # 全量测试记录（16 单测 + 51 端到端）
+    ├── 部署说明.md                     # 打包与部署
     ├── 项目总结与经验复盘.md
     └── 验收测试清单.md
 ```
@@ -112,5 +115,6 @@ demo/
 - [x] 阶段4 课程 + 选课
 - [x] 阶段5 成绩模块 + 前端 M3
 - [x] 阶段6.1–6.2 单元测试 + 验收清单
-- [ ] 阶段6.3–6.4 README 收官 + 打包部署验证
-- [ ] 阶段7 Redis 登出黑名单（JWT 主动作废）
+- [x] 阶段6.3–6.4 README 收官 + 打包部署验证
+- [x] 阶段7 Redis 登出黑名单 + 改密强制下线（JWT 主动作废）
+- [x] 阶段8 全量测试（16 单测 + 51 端到端）与 P0/P1 缺陷修复，见 [docs/测试报告.md](docs/测试报告.md)
