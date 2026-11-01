@@ -43,12 +43,15 @@ class StudentServiceImplTest {
     @Mock
     private JwtUtil jwtUtil;
 
+    @Mock
+    private com.example.demo.mapper.ClazzMapper clazzMapper;
+
     private StudentServiceImpl service;
 
     @BeforeEach
     void setUp() {
-        // 手动 new，把三个 mock 塞进构造器——构造器注入的红利在这里兑现
-        service = new StudentServiceImpl(studentMapper, passwordEncoder, jwtUtil);
+        // 手动 new，把 mock 塞进构造器——构造器注入的红利在这里兑现
+        service = new StudentServiceImpl(studentMapper, passwordEncoder, jwtUtil, clazzMapper);
     }
 
     /** 造一个数据库里"存在"的学生（mock 剧本常用道具） */

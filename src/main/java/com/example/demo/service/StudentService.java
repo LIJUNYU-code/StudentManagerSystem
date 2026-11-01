@@ -19,6 +19,15 @@ public interface StudentService {
     /** 按 id 查询学生（不含密码哈希） */
     StudentResponse getById(Long id);
 
+    /**
+     * 按 id 查询学生，并校验"当前登录者有没有资格看"。
+     * 教师/管理员：任意学生；学生：只能看自己。
+     */
+    StudentResponse getByIdForCurrentUser(Long id);
+
+    /** 教师/管理员重置学生密码（不需要旧密码） */
+    void resetPassword(Long id, String newPassword);
+
     /** 按 id 查询实体（内部用，返回原始实体） */
     Student getEntityById(Long id);
 

@@ -5,13 +5,21 @@ import com.example.demo.entity.Student;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+/**
+ * 成绩返回结构（对外，不含任何敏感字段）。
+ * <p>
+ * 注意：必须有 @NoArgsConstructor —— 自定义 SQL（ScoreMapper.selectPageByCourse）
+ * 走的是"反射 new + setter 赋值"的路径，只有全参构造器时 MyBatis 无法实例化。
+ */
 @Data
-@AllArgsConstructor
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ScoreResponse {
     private Long id;
 
@@ -20,6 +28,9 @@ public class ScoreResponse {
     private String studentName;
 
     private String studentNo;
+
+    /** 课程名（学生端"我的成绩"需要，之前缺失导致前端只能显示学号） */
+    private String courseName;
 
     private BigDecimal value;
 
@@ -43,8 +54,5 @@ public class ScoreResponse {
                 .createTime(score.getCreateTime())
                 .updateTime(score.getUpdateTime())
                 .build();
-
-
     }
-
 }

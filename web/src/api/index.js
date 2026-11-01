@@ -8,7 +8,7 @@ export const listStudents = (params) => request.get('/student', { params }) // p
 export const addStudent = (data) => request.post('/student/register', data)
 export const updateStudent = (id, data) => request.put(`/student/${id}`, data)
 export const deleteStudent = (id) => request.delete(`/student/${id}`)
-
+export const resetStudentPassword = (id, data) => request.post(`/student/${id}/reset-password`, data)
 // ---------- 班级 ----------
 export const listClazzes = (params) => request.get('/clazz', { params })
 export const addClazz = (data) => request.post('/clazz', data)

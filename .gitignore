@@ -52,3 +52,14 @@ web/dist/
 
 ### Maven local repo (offline workaround, not project code) ###
 .m2-repo-redis/
+
+### Local test harness (temporary MySQL instance, e2e scripts, logs) ###
+.tmp-e2e/
+env-backup-JAVA.txt
+memurai-log.txt
+mysql-start.err.txt
+mysql-start.out.txt
+
+### Learning sandboxes (personal practice, not part of the project) ###
+web/learn/
+web/learn-vue/

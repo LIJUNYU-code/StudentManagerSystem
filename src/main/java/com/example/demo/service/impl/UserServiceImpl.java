@@ -41,9 +41,14 @@ public class UserServiceImpl implements UserService {
         }
         String password = passwordEncoder.encode(userRegisterRequestDTO.getPassword());
 
+        // 显式写死 role/status，不依赖数据库列默认值：
+        // 默认值只存在于某台机器的 DDL 里，一旦换库/改表就悄悄变成 null，
+        // 而"教师注册后必须待审核"是业务规则，应该由代码保证。
         User user = User.builder().username(userRegisterRequestDTO.getUsername())
                 .password(password).
                 realName(userRegisterRequestDTO.getRealName())
+                .role("teacher")
+                .status(0)
                 .build();
         userMapper.insert(user);
 

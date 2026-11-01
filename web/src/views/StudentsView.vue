@@ -125,21 +125,10 @@ onMounted(async () => {
     </div>
 
     <div class="toolbar">
-      <el-input
-        v-model="query.keyword"
-        placeholder="搜索姓名 / 学号"
-        clearable
-        style="width: 240px"
-        @keyup.enter="search"
-        @clear="search"
-      />
+      <el-input v-model="query.keyword" placeholder="搜索姓名 / 学号" clearable style="width: 240px" @keyup.enter="search"
+        @clear="search" />
       <el-select v-model="query.clazzId" placeholder="全部班级" clearable style="width: 180px" @change="search">
-        <el-option
-          v-for="c in clazzOptions"
-          :key="c.id"
-          :label="c.name"
-          :value="c.id"
-        />
+        <el-option v-for="c in clazzOptions" :key="c.id" :label="c.name" :value="c.id" />
       </el-select>
       <el-button @click="search">查询</el-button>
     </div>
@@ -147,7 +136,7 @@ onMounted(async () => {
     <el-table :data="records" v-loading="loading" stripe>
       <el-table-column prop="studentNo" label="学号" width="130" />
       <el-table-column prop="name" label="姓名" min-width="100" />
-      <el-table-column label="性别" width="80">
+            <el-table-column label="性别" width="80">
         <template #default="{ row }">{{ row.gender === 0 ? '男' : '女' }}</template>
       </el-table-column>
       <el-table-column prop="age" label="年龄" width="80" />
@@ -161,24 +150,12 @@ onMounted(async () => {
       </el-table-column>
     </el-table>
 
-    <el-pagination
-      class="pager"
-      layout="total, prev, pager, next, sizes"
-      :total="total"
-      :current-page="query.page"
-      :page-size="query.size"
-      :page-sizes="[10, 20, 50]"
-      @current-change="(p) => ((query.page = p), load())"
-      @size-change="(s) => ((query.size = s), (query.page = 1), load())"
-    />
+    <el-pagination class="pager" layout="total, prev, pager, next, sizes" :total="total" :current-page="query.page"
+      :page-size="query.size" :page-sizes="[10, 20, 50]" @current-change="(p) => ((query.page = p), load())"
+      @size-change="(s) => ((query.size = s), (query.page = 1), load())" />
 
     <!-- 新建/编辑弹窗 -->
-    <el-dialog
-      v-model="dialogVisible"
-      :title="editingId ? '编辑学生' : '新建学生'"
-      width="480px"
-      destroy-on-close
-    >
+    <el-dialog v-model="dialogVisible" :title="editingId ? '编辑学生' : '新建学生'" width="480px" destroy-on-close>
       <el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="学号" prop="studentNo">
           <el-input v-model="form.studentNo" :disabled="!!editingId" placeholder="S202500001" />
@@ -216,5 +193,8 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.pager { margin-top: 16px; justify-content: flex-end; }
+.pager {
+  margin-top: 16px;
+  justify-content: flex-end;
+}
 </style>

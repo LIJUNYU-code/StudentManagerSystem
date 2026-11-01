@@ -63,10 +63,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
 
-            // 阶段8：改密强制下线——iat 早于该用户 pwd_change_time 的旧票一律拒绝。
+            // 阶段8：改密强制下线——签发早于该用户 pwd_change_time 的旧票一律拒绝。
             // 与黑名单互补：黑名单按 token 记"坏票"（登出），划线按用户记"好票有效期"（改密）。
+            // 用 iatMs（毫秒）而不是标准 iat（秒）：同一秒内登录再改密也能区分先后。
             Long subjectId = Long.valueOf(claims.getSubject());
-            if (tokenBlacklistService.isStaleByPasswordChange(subjectId, claims.getIssuedAt().toInstant())) {
+            if (tokenBlacklistService.isStaleByPasswordChange(subjectId, jwtUtil.getIssuedAtMillis(claims))) {
                 SecurityContextHolder.clearContext();
                 response.sendError(
                         HttpServletResponse.SC_UNAUTHORIZED,

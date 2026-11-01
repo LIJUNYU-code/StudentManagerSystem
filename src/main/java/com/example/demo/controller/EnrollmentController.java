@@ -31,6 +31,7 @@ public class EnrollmentController {
         EnrollmentResponse enrollment = enrollmentService.add(user);
         return Result.success(enrollment);
     }
+    @PreAuthorize("hasAnyRole('TEACHER','ADMIN')")
     @GetMapping
     public Result<PageResult<EnrollmentResponse>> listByCourse(@Valid EnrollmentQueryDTO user) {
         PageResult<EnrollmentResponse> page = enrollmentService.page(user);

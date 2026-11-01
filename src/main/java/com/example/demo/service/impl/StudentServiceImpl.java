@@ -7,17 +7,21 @@ import com.example.demo.dto.LoginRequestDTO;
 import com.example.demo.dto.LoginResponseDTO;
 import com.example.demo.dto.RegisterRequestDTO;
 import com.example.demo.dto.StudentQueryDTO;
-import com.example.demo.vo.StudentResponse;
 import com.example.demo.dto.StudentUpdateRequestDTO;
 import com.example.demo.entity.Student;
 import com.example.demo.exception.BusinessException;
 import com.example.demo.exception.InvalidCredentialsException;
 import com.example.demo.exception.StudentAlreadyExistsException;
 import com.example.demo.exception.StudentNotFoundException;
+import com.example.demo.mapper.ClazzMapper;
 import com.example.demo.mapper.StudentMapper;
 import com.example.demo.service.StudentService;
 import com.example.demo.util.JwtUtil;
+import com.example.demo.vo.StudentResponse;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,18 +39,72 @@ public class StudentServiceImpl implements StudentService {
     private final StudentMapper studentMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final ClazzMapper clazzMapper;
 
     public StudentServiceImpl(StudentMapper studentMapper,
                               PasswordEncoder passwordEncoder,
-                              JwtUtil jwtUtil) {
+                              JwtUtil jwtUtil,
+                              ClazzMapper clazzMapper) {
         this.studentMapper = studentMapper;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
+        this.clazzMapper = clazzMapper;
     }
 
     @Override
     public StudentResponse getById(Long id) {
         return StudentResponse.from(getEntityById(id));
+    }
+
+    /**
+     * 带"查看资格"校验的查询：教师/管理员可查任意学生，学生只能查自己。
+     * <p>
+     * 为什么单独开一个方法、而不是把校验塞进 getEntityById：
+     * getEntityById 还被 update / delete / resetPassword 内部复用，
+     * 那些入口的权限由 @PreAuthorize 保证（只有教师/管理员能进），
+     * 若把"只能看自己"写进 getEntityById，教师改学生资料会被自己拦成 403。
+     */
+    @Override
+    public StudentResponse getByIdForCurrentUser(Long id) {
+        if (isCurrentUserStudentOnly() && !currentUserId().equals(id)) {
+            throw new BusinessException(403, "只能查看自己的信息");
+        }
+        return StudentResponse.from(getEntityById(id));
+    }
+
+    /** 当前登录者是否"只有学生身份"（教师/管理员任一角色即放行） */
+    private boolean isCurrentUserStudentOnly() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getAuthorities() == null) {
+            return true; // 无身份信息时按最严格处理
+        }
+        boolean teacherOrAdmin = auth.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(a -> "ROLE_TEACHER".equals(a) || "ROLE_ADMIN".equals(a));
+        return !teacherOrAdmin;
+    }
+
+    /** 从 SecurityContext 取当前用户 id（JWT 过滤器写入的 Long） */
+    private Long currentUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !(auth.getPrincipal() instanceof Long id)) {
+            throw new BusinessException(401, "登录状态异常，请重新登录");
+        }
+        return id;
+    }
+
+    /**
+     * 教师/管理员重置学生密码（学生忘记密码的场景，不需要旧密码）。
+     * 权限由 Controller 的 @PreAuthorize 保证。
+     */
+    @Transactional
+    @Override
+    public void resetPassword(Long id, String newPassword) {
+        getEntityById(id); // 不存在直接 404
+        Student changes = new Student();
+        changes.setId(id);
+        changes.setPassword(passwordEncoder.encode(newPassword));
+        studentMapper.updateById(changes);
     }
 
     @Override
@@ -56,6 +114,7 @@ public class StudentServiceImpl implements StudentService {
         if (student == null) {
             throw new StudentNotFoundException("学生不存在: " + id);
         }
+
         return student;
     }
 
@@ -159,6 +218,13 @@ public class StudentServiceImpl implements StudentService {
             if (count != null && count > 0) {
                 throw new StudentAlreadyExistsException("学号已注册: " + dto.getStudentNo());
             }
+        }
+
+        // 若改班级，先确认班级真实存在：
+        // clazz_id 是逻辑外键（没有物理 FK 约束），不校验就会存进一个指向空气的班级 id，
+        // 之后学生列表按班级筛选、班级人数统计都会出现查不到的情况。
+        if (dto.getClazzId() != null && clazzMapper.selectById(dto.getClazzId()) == null) {
+            throw new BusinessException(400, "班级不存在: " + dto.getClazzId());
         }
 
         // updateById 只 SET 非 null 字段（update-strategy 默认 NOT_NULL）

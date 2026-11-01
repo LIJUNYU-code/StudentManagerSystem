@@ -1,7 +1,6 @@
 package com.example.demo.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.demo.common.PageResult;
 import com.example.demo.dto.ScoreQueryDTO;
 import com.example.demo.dto.ScoreRequestDTO;
@@ -20,6 +19,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
@@ -36,22 +36,29 @@ public class ScoreServiceImpl implements ScoreService {
     private final CourseMapper courseMapper;
 
     @Override
+    @Transactional
     public void add(ScoreRequestDTO dto) {
         Long enrollmentId = dto.getEnrollmentId();
         if (enrollmentMapper.selectById(enrollmentId) == null) {
             throw new BusinessException(404, "选课记录不存在");
         }
-        Long count = scoreMapper.selectCount(new LambdaQueryWrapper<Score>().eq(Score::getEnrollmentId, enrollmentId));
-
-        if( count > 0){
-            throw new BusinessException(409,"已填加学生成绩记录");
+        // 同一选课记录、同一考试类型只能录一次；期中/期末/补考是三条独立记录
+        // （数据库侧由 uk_score_enrollment_exam 兜底，这里先查是为了给出友好提示）
+        Long count = scoreMapper.selectCount(new LambdaQueryWrapper<Score>()
+                .eq(Score::getEnrollmentId, enrollmentId)
+                .eq(Score::getExamType, dto.getExamType()));
+        if (count != null && count > 0) {
+            throw new BusinessException(409, "该学生这门课的「" + dto.getExamType() + "」成绩已录入");
         }
         Score score = new Score();
-        BeanUtils.copyProperties(dto,score);
+        BeanUtils.copyProperties(dto, score);
         try {
             scoreMapper.insert(score);
         } catch (DuplicateKeyException e) {
-            throw new DuplicateKeyException(e.getMessage());
+            // 并发穿透：两个请求同时通过上面的查重，靠数据库唯一键兜底。
+            // 翻译成业务异常（而不是把 DuplicateKeyException 原样抛出），
+            // 否则会被全局兜底处理器当成 500，且丢掉"是重复录入"这层语义。
+            throw new BusinessException(409, "该学生这门课的「" + dto.getExamType() + "」成绩已录入");
         }
     }
 
@@ -62,52 +69,49 @@ public class ScoreServiceImpl implements ScoreService {
             throw new BusinessException(404, "课程不存在");
         }
 
-        // ② 该课程的全部选课记录（score 表只认 enrollment_id，先拿到这批"准考证号"）
-        List<Enrollment> enrollments = enrollmentMapper.selectList(new LambdaQueryWrapper<Enrollment>()
-                .eq(Enrollment::getCourseId, dto.getCourseId()));
-        if (enrollments.isEmpty()) {
-            // 课程存在但没人选课：直接返回空页。空列表不能丢给 in()（会生成非法 SQL）
+        // ② 一条 join SQL 完成「成绩 + 学生」关联与分页。
+        //    旧写法是先把整门课的选课记录全查出来再 in() 分页，
+        //    课程人数一多就白搬几千行内存；现在由数据库直接返回当前页 10 行。
+        long total = scoreMapper.countByCourse(dto.getCourseId());
+        if (total == 0) {
             return new PageResult<>(0L, List.of(), dto.getPage(), dto.getPageSize());
         }
-        List<Long> enrollmentIds = enrollments.stream().map(Enrollment::getId).toList();
-
-        // ③ 分页查成绩：in() 一次圈定这批选课记录的所有成绩
-        Page<Score> page = scoreMapper.selectPage(new Page<>(dto.getPage(), dto.getPageSize()),
-                new LambdaQueryWrapper<Score>()
-                        .in(Score::getEnrollmentId, enrollmentIds)
-                        .orderByDesc(Score::getId));
-
-        // ④ 两跳换名字：enrollmentId → studentId → 学生实体（全程内存 + 一次批量查，无 N+1）
-        Map<Long, Long> enrollmentToStudent = enrollments.stream()
-                .collect(Collectors.toMap(Enrollment::getId, Enrollment::getStudentId));
-        Map<Long, Student> studentMap = studentMapper.selectBatchIds(
-                        enrollmentToStudent.values().stream().distinct().toList())
-                .stream().collect(Collectors.toMap(Student::getId, s -> s));
-
-        // ⑤ 拼 VO：score → enrollment 换 studentId → studentMap 换实体
-        List<ScoreResponse> records = page.getRecords().stream()
-                .map(w -> ScoreResponse.from(w, studentMap.get(enrollmentToStudent.get(w.getEnrollmentId()))))
-                .toList();
-        return new PageResult<>(page.getTotal(), records, page.getCurrent(), page.getSize());
+        long offset = (long) (dto.getPage() - 1) * dto.getPageSize();
+        List<ScoreResponse> records =
+                scoreMapper.selectPageByCourse(dto.getCourseId(), offset, dto.getPageSize());
+        return new PageResult<>(total, records, dto.getPage(), dto.getPageSize());
     }
 
     @Override
     public List<ScoreResponse> query() {
         Long currentId = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Student student = studentMapper.selectById(currentId);
-        List<Enrollment> enrollments = enrollmentMapper.selectList(new LambdaQueryWrapper<Enrollment>().eq(Enrollment::getStudentId, currentId));
+        List<Enrollment> enrollments = enrollmentMapper.selectList(
+                new LambdaQueryWrapper<Enrollment>().eq(Enrollment::getStudentId, currentId));
+        if (enrollments.isEmpty()) {
+            return Collections.emptyList();
+        }
+        // enrollmentId → 课程名（学生端要显示"哪门课"的成绩，光有学号没有意义）
+        // 一次批量查课程再在内存里映射，避免在循环里逐条查库（N+1 查询）
+        List<Long> courseIds = enrollments.stream()
+                .map(Enrollment::getCourseId).distinct().toList();
+        Map<Long, String> courseNameById = courseMapper.selectBatchIds(courseIds).stream()
+                .collect(Collectors.toMap(c -> c.getId(), c -> c.getName()));
+        Map<Long, String> courseNameByEnrollment = enrollments.stream()
+                .collect(Collectors.toMap(Enrollment::getId,
+                        e -> courseNameById.get(e.getCourseId())));
+
         List<Long> ids = enrollments.stream().map(Enrollment::getId).toList();
-        if (ids.isEmpty()) {
-            return Collections.emptyList();
-        }
         List<Score> scores = scoreMapper.selectList(new LambdaQueryWrapper<Score>()
-                .in(Score::getEnrollmentId, ids));
-        if( scores == null || scores.isEmpty() ){
+                .in(Score::getEnrollmentId, ids)
+                .orderByDesc(Score::getId));
+        if (scores.isEmpty()) {
             return Collections.emptyList();
         }
-        List<ScoreResponse> result = scores.stream().map(w -> ScoreResponse.from(w, student)).toList();
-        return result;
-
-
+        return scores.stream().map(w -> {
+            ScoreResponse vo = ScoreResponse.from(w, student);
+            vo.setCourseName(courseNameByEnrollment.get(w.getEnrollmentId()));
+            return vo;
+        }).toList();
     }
 }

@@ -7,12 +7,15 @@ import com.example.demo.dto.CourseQueryDTO;
 import com.example.demo.dto.CourseRequestDTO;
 import com.example.demo.dto.CourseUpdateRequestDTO;
 import com.example.demo.entity.Course;
+import com.example.demo.entity.Enrollment;
 import com.example.demo.exception.BusinessException;
 import com.example.demo.mapper.CourseMapper;
+import com.example.demo.mapper.EnrollmentMapper;
 import com.example.demo.service.CourseService;
 import com.example.demo.vo.CourseResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -21,6 +24,7 @@ import java.util.List;
 public class CourseServiceImpl implements CourseService {
 
     private final CourseMapper courseMapper;
+    private final EnrollmentMapper enrollmentMapper;
 
 
     @Override
@@ -33,6 +37,7 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
+    @Transactional
     public CourseResponse add(CourseRequestDTO courseRequestDTO) {
         Long count = courseMapper.selectCount(new LambdaQueryWrapper<Course>().eq(Course::getName, courseRequestDTO.getName()));
         if(count != null && count>0){
@@ -102,6 +107,13 @@ public class CourseServiceImpl implements CourseService {
         Course course = courseMapper.selectById(id);
         if (course == null) {
             throw new BusinessException(404,"无此课程");
+        }
+        // 有选课记录就拦下：课程删了而选课/成绩还在，这些数据会指向不存在的课程。
+        // 与班级删除同一策略——宁可让老师先处理关联数据，也不做级联删除。
+        Long enrollmentCount = enrollmentMapper.selectCount(
+                new LambdaQueryWrapper<Enrollment>().eq(Enrollment::getCourseId, id));
+        if (enrollmentCount != null && enrollmentCount > 0) {
+            throw new BusinessException(409, "该课程已有 " + enrollmentCount + " 条选课记录，请先清空选课再删除");
         }
         courseMapper.deleteById(id);
     }

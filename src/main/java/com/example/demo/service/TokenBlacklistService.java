@@ -78,10 +78,10 @@ public class TokenBlacklistService {
             return false; // 从未改密：不做 iat 比较
         }
         LocalDateTime iat = LocalDateTime.ofInstant(issuedAt, ZoneId.systemDefault());
-        // 1 秒宽容窗口：改密接口里 setPwdChangeTime(now) 与 generateToken(now) 是两次
-        // 独立取时，新票的 iat 可能比划线早几毫秒，无缓冲会把刚签发的新票误杀。
-        // 代价 = 划线前 1 秒内签发的旧票多活 1 秒，可接受（JWT 惯例：时钟偏移容忍）。
-        return iat.plusSeconds(1).isBefore(pwdChangeTime);
+        // 严格小于：改密后新签发的 token 其签发时刻必然晚于划线时刻。
+        // 前提是两侧都到毫秒（V8 迁移把 pwd_change_time 提到 DATETIME(3)，
+        // token 侧用 iatMs claim），否则"同一秒内登录再改密"的旧票会逃过检查。
+        return iat.isBefore(pwdChangeTime);
     }
 
     /**
