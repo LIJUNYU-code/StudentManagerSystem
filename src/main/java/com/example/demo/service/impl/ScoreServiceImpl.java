@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -97,9 +98,14 @@ public class ScoreServiceImpl implements ScoreService {
                 .map(Enrollment::getCourseId).distinct().toList();
         Map<Long, String> courseNameById = courseMapper.selectBatchIds(courseIds).stream()
                 .collect(Collectors.toMap(c -> c.getId(), c -> c.getName()));
-        Map<Long, String> courseNameByEnrollment = enrollments.stream()
-                .collect(Collectors.toMap(Enrollment::getId,
-                        e -> courseNameById.get(e.getCourseId())));
+        // 注意：这里刻意不用 Collectors.toMap —— 它内部走 Map.merge，
+        // 一旦 value 为 null 就抛 NullPointerException。
+        // 而"选课指向的课程查不到"（课程被逻辑删除、或历史脏数据）是真实可能发生的，
+        // 那种情况下课程名取不到只应让该行显示空，不该让整个"我的成绩"页面 500。
+        Map<Long, String> courseNameByEnrollment = new HashMap<>();
+        for (Enrollment e : enrollments) {
+            courseNameByEnrollment.put(e.getId(), courseNameById.get(e.getCourseId()));
+        }
 
         List<Long> ids = enrollments.stream().map(Enrollment::getId).toList();
         List<Score> scores = scoreMapper.selectList(new LambdaQueryWrapper<Score>()
