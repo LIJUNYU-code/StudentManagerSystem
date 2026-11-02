@@ -4,7 +4,7 @@
 [![Java](https://img.shields.io/badge/Java-25-orange)](https://adoptium.net/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1.1-6DB33F)](https://spring.io/projects/spring-boot)
 [![Vue](https://img.shields.io/badge/Vue-3-42B883)](https://vuejs.org/)
-[![Tests](https://img.shields.io/badge/tests-309%20passing-brightgreen)](#测试)
+[![Tests](https://img.shields.io/badge/tests-312%20passing-brightgreen)](#测试)
 
 基于 **Spring Boot 4 + Vue 3** 的学生/班级/课程/成绩一体化管理平台。
 从最初的"学生管理系统"练习项目逐步演进而来，完整开发过程见
@@ -25,7 +25,7 @@
 | --- | --- |
 | 后端 | Java 17–26 · Spring Boot 4.1.1 · Spring Security(JWT) · MyBatis-Plus 3.5.17 · MySQL 8 · Maven Wrapper |
 | 前端 | Vue 3 · Vite · Element Plus（按需引入） · Pinia · Vue Router · Axios · ECharts 6（按需引入） |
-| 测试 | JUnit 5 + Mockito（162 个单元用例）+ MockMvc 切片（147 条）+ 106 条端到端接口用例 + 手工验收清单 |
+| 测试 | JUnit 5 + Mockito（162 个单元用例）+ MockMvc 切片（150 条）+ 106 条端到端接口用例 + 手工验收清单 |
 
 ## 快速启动
 
@@ -88,7 +88,7 @@ pnpm dev        # 开发服务器，默认 http://localhost:5173
 ## 构建
 
 ```bash
-# 后端：跑全部后端测试（309 用例，不依赖数据库）
+# 后端：跑全部后端测试（312 用例，不依赖数据库）
 mvnw.cmd clean test
 
 # 后端：打包 fat-jar（阶段6.4）
@@ -107,11 +107,11 @@ cd web && pnpm build
 | 层级 | 条数 | 是否连库 | 说明 |
 | --- | --- | --- | --- |
 | Service 单元测试 | 162 | ❌ | Mockito 打桩，覆盖业务规则与状态机 |
-| Controller 切片 | 147 | ❌ | `@WebMvcTest` + 真实安全过滤链，覆盖 HTTP 状态码与权限矩阵 |
+| Controller 切片 | 150 | ❌ | `@WebMvcTest` + 真实安全过滤链，覆盖 HTTP 状态码与权限矩阵 |
 | 端到端接口测试 | 106 | ✅ | 真实 HTTP + MySQL + Redis，见 `docs/测试报告.md` |
-| **合计** | **309**（自动化）+ 106（端到端） | | |
+| **合计** | **312**（自动化）+ 106（端到端） | | |
 
-**309 条自动化测试全部不依赖 MySQL / Redis**，`./mvnw test` 在干净环境即可全绿——
+**312 条自动化测试全部不依赖 MySQL / Redis**，`./mvnw test` 在干净环境即可全绿——
 这一点经过实测验证（把数据源和 Redis 都指向不存在的端口 3999，测试依然全绿），
 所以 CI 不需要启动任何数据库服务。
 
@@ -126,7 +126,7 @@ cd web && pnpm build
 
 设计要点：
 
-1. **不需要 `services: mysql/redis`** —— 因为 309 条测试全是切片/单测，不碰真库。将来若加 `@SpringBootTest` 集成测试才需要。
+1. **不需要 `services: mysql/redis`** —— 因为 312 条测试全是切片/单测，不碰真库。将来若加 `@SpringBootTest` 集成测试才需要。
 2. **`npm ci` 而非 `npm install`** —— 严格按 `package-lock.json` 安装，保证 CI 可复现，不会悄悄升级小版本。
 3. **Maven 缓存 key 带 `hashFiles('**/pom.xml')`** —— pom 没变直接命中缓存，变了才重新下载。
 4. **`concurrency` 取消旧运行** —— 同一分支连续 push 时自动取消上一次，省额度。
@@ -141,7 +141,7 @@ cd web && pnpm build
 demo/
 ├── .github/workflows/ci.yml           # CI：后端测试 + 前端构建（push/PR 自动触发）
 ├── src/main/java/com/example/demo/    # 后端（controller/service/mapper/entity/dto/vo/config/…）
-├── src/test/java/                     # 309 条测试（Service 单测 + Controller 切片）
+├── src/test/java/                     # 312 条测试（Service 单测 + Controller 切片）
 ├── sql/                               # V1–V12 数据库迁移脚本
 ├── deploy/nginx/                      # 生产部署配置（静态托管 + API 反代，已实测）
 ├── web/                               # Vue 3 前端
@@ -149,7 +149,7 @@ demo/
 └── docs/
     ├── project-planning/              # 五份规划文档（现状/方向/技术方案/资料/路线图）
     ├── learning/                      # 前端学习课程
-    ├── 测试报告.md                     # 全量测试记录（309 后端 + 106 端到端）
+    ├── 测试报告.md                     # 全量测试记录（312 后端 + 106 端到端）
     ├── 部署说明.md                     # 打包与部署
     ├── 项目总结与经验复盘.md
     └── 验收测试清单.md
@@ -170,7 +170,7 @@ demo/
 - [x] 阶段9 Redis 故障降级（熔断 + 本地兜底），Redis 停机不再影响带 token 请求，见测试报告 5.4
 - [x] 阶段10 生产部署验证（Nginx 静态托管 + API 反代，16 项实测通过），见 [docs/部署说明.md](docs/部署说明.md)
 - [x] 阶段11 成绩统计与考勤（ECharts 图表 / 批量点名 / 出勤率），264 后端 + 76 端到端全绿，见测试报告 6.1
-- [x] 阶段12 请假审批流（状态机 / 审批通过自动同步考勤 / 越权防护），309 后端 + 106 端到端全绿，见测试报告 4.2-K 与 5.6
+- [x] 阶段12 请假审批流（状态机 / 审批通过自动同步考勤 / 越权防护），312 后端 + 106 端到端全绿，见测试报告 4.2-K 与 5.6
 - [x] 阶段13 持续集成（GitHub Actions：后端测试 + 前端构建，push/PR 自动触发）
 
 ## 二期可扩展（方向 C）
