@@ -18,8 +18,8 @@
 | 层 | 技术 |
 | --- | --- |
 | 后端 | Java 17–26 · Spring Boot 4.1.1 · Spring Security(JWT) · MyBatis-Plus 3.5.17 · MySQL 8 · Maven Wrapper |
-| 前端 | Vue 3 · Vite · Element Plus · Pinia · Vue Router · Axios |
-| 测试 | JUnit 5 + Mockito（119 个单元用例）+ MockMvc 切片（89 条）+ 51 条端到端接口用例 + 手工验收清单 |
+| 前端 | Vue 3 · Vite · Element Plus（按需引入） · Pinia · Vue Router · Axios · ECharts 6（按需引入） |
+| 测试 | JUnit 5 + Mockito（140 个单元用例）+ MockMvc 切片（124 条）+ 76 条端到端接口用例 + 手工验收清单 |
 
 ## 快速启动
 
@@ -53,7 +53,7 @@ pnpm dev        # 开发服务器，默认 http://localhost:5173
 | teacher_wang | Abc12345 | 教师 |
 | S200001234 | Abc12345 | 学生（登录后进学生端首页） |
 
-## 接口一览（7 组 Controller）
+## 接口一览（9 组 Controller）
 
 | 前缀 | 说明 | 权限 |
 | --- | --- | --- |
@@ -67,6 +67,12 @@ pnpm dev        # 开发服务器，默认 http://localhost:5173
 | `/course` | 课程 CRUD | teacher、admin |
 | `/enrollments` | 选课/退课 | teacher、admin |
 | `/scores`、`GET /scores/my` | 录成绩、课程成绩单、学生自助查分 | teacher / student 自助 |
+| `/stats/course/{id}/summary`、`/distribution` | 课程成绩概览、分数段分布 | teacher、admin |
+| `/stats/clazz/{id}/compare` | 班级各课平均分对比 | teacher、admin |
+| `GET /stats/my/trend` | 学生自己的成绩趋势 | student |
+| `/attendance/batch`、`GET /attendance`、`PUT /attendance/{id}` | 批量点名（覆盖语义）、点名名单、单条修改 | teacher、admin |
+| `GET /attendance/stats` | 课程出勤统计 | teacher、admin |
+| `GET /attendance/my` | 学生自己的考勤明细 | student |
 | `/admin/user` | 用户审核/禁用/列表 | admin |
 
 完整字段与用例见 [docs/验收测试清单.md](docs/验收测试清单.md)。
@@ -74,7 +80,7 @@ pnpm dev        # 开发服务器，默认 http://localhost:5173
 ## 构建
 
 ```bash
-# 后端：跑全部后端测试（208 用例，不依赖数据库）
+# 后端：跑全部后端测试（264 用例，不依赖数据库）
 mvnw.cmd clean test
 
 # 后端：打包 fat-jar（阶段6.4）
@@ -92,16 +98,16 @@ cd web && pnpm build
 
 ```
 demo/
-├── src/main/java/com/example/demo/    # 后端（controller/service/mapper/entity/dto/config/…）
-├── src/test/java/                     # 208 条测试（Service 单测 + Controller 切片）
-├── sql/                               # V1–V8 数据库迁移脚本
+├── src/main/java/com/example/demo/    # 后端（controller/service/mapper/entity/dto/vo/config/…）
+├── src/test/java/                     # 264 条测试（Service 单测 + Controller 切片）
+├── sql/                               # V1–V10 数据库迁移脚本
 ├── deploy/nginx/                      # 生产部署配置（静态托管 + API 反代，已实测）
 ├── web/                               # Vue 3 前端
-│   └── src/{api,layout,router,stores,views,assets}
+│   └── src/{api,components,layout,router,stores,views,assets}
 └── docs/
     ├── project-planning/              # 五份规划文档（现状/方向/技术方案/资料/路线图）
     ├── learning/                      # 前端学习课程
-    ├── 测试报告.md                     # 全量测试记录（208 后端 + 51 端到端）
+    ├── 测试报告.md                     # 全量测试记录（264 后端 + 76 端到端）
     ├── 部署说明.md                     # 打包与部署
     ├── 项目总结与经验复盘.md
     └── 验收测试清单.md
@@ -121,3 +127,13 @@ demo/
 - [x] 阶段8 全量测试（208 后端 + 51 端到端）与 P0/P1 缺陷修复，见 [docs/测试报告.md](docs/测试报告.md)
 - [x] 阶段9 Redis 故障降级（熔断 + 本地兜底），Redis 停机不再影响带 token 请求，见测试报告 5.4
 - [x] 阶段10 生产部署验证（Nginx 静态托管 + API 反代，16 项实测通过），见 [docs/部署说明.md](docs/部署说明.md)
+- [x] 阶段11 成绩统计与考勤（ECharts 图表 / 批量点名 / 出勤率），264 后端 + 76 端到端全绿，见测试报告 6.1
+
+## 二期可扩展（方向 C）
+
+以下功能已完成数据与接口基础，但**未实现**，属于后续独立阶段：
+
+- 考勤请假审批流（当前只有记录，没有审批状态机）
+- 成绩趋势预测 / 班级排名（`StatsMapper` 已有聚合能力，加一个 SQL 即可）
+- Excel 批量导入导出（学生名单、成绩表）
+- 多学期支持（当前 `score.exam_type` 只有 final/midterm/makeup，没有学期维度）

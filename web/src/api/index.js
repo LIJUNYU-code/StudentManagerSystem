@@ -44,3 +44,18 @@ export const addEnrollment = (data) => request.post('/enrollments', data) // {st
 export const listScores = (params) => request.get('/scores', { params }) // {courseId,page,pageSize}
 export const addScore = (data) => request.post('/scores', data)
 export const listScoresMy = () => request.get('/scores/my') // 学生查自己的成绩（后端从 token 取身份）
+
+// ---------- 成绩统计（教师/管理员看课程，学生看自己）----------
+export const courseSummary = (courseId) => request.get(`/stats/course/${courseId}/summary`)
+export const courseDistribution = (courseId) => request.get(`/stats/course/${courseId}/distribution`)
+export const clazzCompare = (clazzId) => request.get(`/stats/clazz/${clazzId}/compare`)
+export const myScoreTrend = () => request.get('/stats/my/trend')
+
+// ---------- 考勤 ----------
+// 批量点名：{courseId, attendDate, sessionNo, items:[{studentId,status,remark}]}
+// 语义是覆盖——重复提交不会 409，已点过的会被更新
+export const batchAttendance = (data) => request.post('/attendance/batch', data)
+export const listAttendanceRoster = (params) => request.get('/attendance', { params }) // {courseId,attendDate,sessionNo}
+export const updateAttendance = (id, data) => request.put(`/attendance/${id}`, data) // {status,remark}
+export const attendanceStats = (courseId) => request.get('/attendance/stats', { params: { courseId } })
+export const myAttendance = () => request.get('/attendance/my') // 学生查自己的出勤

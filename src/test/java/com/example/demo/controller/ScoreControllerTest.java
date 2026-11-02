@@ -90,7 +90,7 @@ class ScoreControllerTest {
                 .id(1L).enrollmentId(7L)
                 .studentName("张三").studentNo("S202500001")
                 .courseName("数据结构")
-                .value(new BigDecimal("88.5")).examType("期末")
+                .value(new BigDecimal("88.5")).examType("final")
                 .build();
     }
 
@@ -102,7 +102,7 @@ class ScoreControllerTest {
         mockMvc.perform(post("/scores")
                         .header("Authorization", token(TEACHER_ID, "teacher"))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"enrollmentId\":7,\"value\":88.5,\"examType\":\"期末\"}"))
+                        .content("{\"enrollmentId\":7,\"value\":88.5,\"examType\":\"final\"}"))
                 .andExpect(status().isOk());
 
         verify(scoreService).add(any());
@@ -114,7 +114,7 @@ class ScoreControllerTest {
         mockMvc.perform(post("/scores")
                         .header("Authorization", token(STUDENT_ID, "student"))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"enrollmentId\":7,\"value\":100,\"examType\":\"期末\"}"))
+                        .content("{\"enrollmentId\":7,\"value\":100,\"examType\":\"final\"}"))
                 .andExpect(status().isForbidden());
 
         verifyNoInteractions(scoreService);
@@ -126,7 +126,7 @@ class ScoreControllerTest {
         mockMvc.perform(post("/scores")
                         .header("Authorization", token(TEACHER_ID, "teacher"))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"enrollmentId\":7,\"value\":101,\"examType\":\"期末\"}"))
+                        .content("{\"enrollmentId\":7,\"value\":101,\"examType\":\"final\"}"))
                 .andExpect(status().isBadRequest());
 
         verifyNoInteractions(scoreService);
@@ -138,7 +138,7 @@ class ScoreControllerTest {
         mockMvc.perform(post("/scores")
                         .header("Authorization", token(TEACHER_ID, "teacher"))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"enrollmentId\":7,\"value\":-1,\"examType\":\"期末\"}"))
+                        .content("{\"enrollmentId\":7,\"value\":-1,\"examType\":\"final\"}"))
                 .andExpect(status().isBadRequest());
 
         verifyNoInteractions(scoreService);
@@ -147,16 +147,16 @@ class ScoreControllerTest {
     @Test
     @DisplayName("同一选课同一考试类型重复录入 → 409")
     void add_duplicateExamType() throws Exception {
-        org.mockito.Mockito.doThrow(new BusinessException(409, "该学生这门课的「期末」成绩已录入"))
+        org.mockito.Mockito.doThrow(new BusinessException(409, "该学生这门课的「final」成绩已录入"))
                 .when(scoreService).add(any());
 
         mockMvc.perform(post("/scores")
                         .header("Authorization", token(TEACHER_ID, "teacher"))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"enrollmentId\":7,\"value\":90,\"examType\":\"期末\"}"))
+                        .content("{\"enrollmentId\":7,\"value\":90,\"examType\":\"final\"}"))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message").value(
-                        org.hamcrest.Matchers.containsString("期末")));
+                        org.hamcrest.Matchers.containsString("final")));
     }
 
     // ==================== GET /scores（按课程查全班） ====================

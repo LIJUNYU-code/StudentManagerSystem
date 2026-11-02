@@ -35,7 +35,11 @@ function scoreColor(v) {
   return Number(v) >= 60 ? '#34c759' : '#ff3b30'
 }
 
-const examTypeLabel = { 期末: '期末', 期中: '期中', 平时: '平时' }
+// 数据库里 exam_type 存的是英文代码（final/midterm/makeup，见 V2 建表注释），
+// 这里必须用英文做 key。原来的写法用中文当 key（{ 期末: '期末' }），
+// 和后端返回的 "final" 永远匹配不上——页面会直接显示英文原文，
+// 而且这种错不报错、不白屏，只是"看起来有点怪"，很难被发现。
+const examTypeLabel = { final: '期末', midterm: '期中', makeup: '补考' }
 
 function fmtTime(t) {
   return t ? String(t).replace('T', ' ').slice(0, 16) : ''

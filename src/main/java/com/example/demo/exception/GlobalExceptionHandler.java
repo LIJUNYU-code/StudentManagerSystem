@@ -86,6 +86,24 @@ public class GlobalExceptionHandler {
                 .body(Result.error(400, "参数类型不正确: " + e.getName()));
     }
 
+    /**
+     * 缺少必填的请求参数（如 GET /attendance/stats 不带 courseId）。
+     * <p>
+     * 这属于"客户端没把话说完"，必须是 400。之前没有这个 handler 时，
+     * 它落进 Exception 兜底变成 500——客户端会以为服务器坏了，去查日志、重启服务，
+     * 而真实原因只是少传了一个参数。这是排查成本极高的一类误判。
+     * <p>
+     * 与 MethodArgumentTypeMismatchException 的区别：
+     * 那个是"传了但类型不对"（page=abc），这个是"根本没传"。
+     * 两者都是 400，但提示语要能让人一眼看出该改哪儿。
+     */
+    @ExceptionHandler(org.springframework.web.bind.MissingServletRequestParameterException.class)
+    public ResponseEntity<Result<Void>> handleMissingParam(
+            org.springframework.web.bind.MissingServletRequestParameterException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Result.error(400, "缺少必填参数: " + e.getParameterName()));
+    }
+
     /** 请求路径不存在（如打错 URL），避免返回一大页 Whitelabel */
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<Result<Void>> handleNoResource(NoResourceFoundException e) {
