@@ -59,3 +59,12 @@ export const listAttendanceRoster = (params) => request.get('/attendance', { par
 export const updateAttendance = (id, data) => request.put(`/attendance/${id}`, data) // {status,remark}
 export const attendanceStats = (courseId) => request.get('/attendance/stats', { params: { courseId } })
 export const myAttendance = () => request.get('/attendance/my') // 学生查自己的出勤
+
+// ---------- 请假 ----------
+// 状态机：0待审核 1已通过 2已驳回 3已撤销；1/2/3 都是终态
+export const createLeave = (data) => request.post('/leave', data) // {courseId,startDate,endDate,reason}
+export const listMyLeaves = (params) => request.get('/leave/my', { params })
+export const listLeaves = (params) => request.get('/leave', { params }) // 教师/管理员，可按 status/courseId 筛
+export const approveLeave = (id, data) => request.put(`/leave/${id}/approve`, data ?? {}) // 通过后自动写考勤
+export const rejectLeave = (id, data) => request.put(`/leave/${id}/reject`, data ?? {})
+export const cancelLeave = (id) => request.put(`/leave/${id}/cancel`)

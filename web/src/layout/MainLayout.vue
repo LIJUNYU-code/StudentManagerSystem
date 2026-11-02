@@ -20,8 +20,10 @@ const allMenus = [
   { path: '/courses', label: '课程管理', icon: '📚', visible: () => !auth.isStudent },
   { path: '/scores', label: '选课与成绩', icon: '📝', visible: () => !auth.isStudent },
   { path: '/attendance', label: '考勤管理', icon: '🗓️', visible: () => !auth.isStudent },
+  { path: '/leave-review', label: '请假审核', icon: '📋', visible: () => !auth.isStudent },
   { path: '/stats', label: '成绩分析', icon: '📊', visible: () => !auth.isStudent },
   { path: '/my-attendance', label: '我的考勤', icon: '🗓️', visible: () => auth.isStudent },
+  { path: '/my-leave', label: '我的请假', icon: '📋', visible: () => auth.isStudent },
   { path: '/admin/users', label: '用户审核', icon: '🛡️', visible: () => auth.isAdmin },
 ]
 const menus = computed(() => allMenus.filter((m) => m.visible()))

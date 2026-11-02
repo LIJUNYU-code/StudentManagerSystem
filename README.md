@@ -19,7 +19,7 @@
 | --- | --- |
 | 后端 | Java 17–26 · Spring Boot 4.1.1 · Spring Security(JWT) · MyBatis-Plus 3.5.17 · MySQL 8 · Maven Wrapper |
 | 前端 | Vue 3 · Vite · Element Plus（按需引入） · Pinia · Vue Router · Axios · ECharts 6（按需引入） |
-| 测试 | JUnit 5 + Mockito（140 个单元用例）+ MockMvc 切片（124 条）+ 76 条端到端接口用例 + 手工验收清单 |
+| 测试 | JUnit 5 + Mockito（162 个单元用例）+ MockMvc 切片（147 条）+ 106 条端到端接口用例 + 手工验收清单 |
 
 ## 快速启动
 
@@ -53,7 +53,7 @@ pnpm dev        # 开发服务器，默认 http://localhost:5173
 | teacher_wang | Abc12345 | 教师 |
 | S200001234 | Abc12345 | 学生（登录后进学生端首页） |
 
-## 接口一览（9 组 Controller）
+## 接口一览（10 组 Controller）
 
 | 前缀 | 说明 | 权限 |
 | --- | --- | --- |
@@ -73,6 +73,8 @@ pnpm dev        # 开发服务器，默认 http://localhost:5173
 | `/attendance/batch`、`GET /attendance`、`PUT /attendance/{id}` | 批量点名（覆盖语义）、点名名单、单条修改 | teacher、admin |
 | `GET /attendance/stats` | 课程出勤统计 | teacher、admin |
 | `GET /attendance/my` | 学生自己的考勤明细 | student |
+| `POST /leave`、`GET /leave/my`、`PUT /leave/{id}/cancel` | 提交请假、我的请假、撤销待审核申请 | student |
+| `GET /leave`、`PUT /leave/{id}/approve`、`PUT /leave/{id}/reject` | 请假列表、审批通过（自动同步考勤）、驳回 | teacher、admin |
 | `/admin/user` | 用户审核/禁用/列表 | admin |
 
 完整字段与用例见 [docs/验收测试清单.md](docs/验收测试清单.md)。
@@ -80,7 +82,7 @@ pnpm dev        # 开发服务器，默认 http://localhost:5173
 ## 构建
 
 ```bash
-# 后端：跑全部后端测试（264 用例，不依赖数据库）
+# 后端：跑全部后端测试（309 用例，不依赖数据库）
 mvnw.cmd clean test
 
 # 后端：打包 fat-jar（阶段6.4）
@@ -99,8 +101,8 @@ cd web && pnpm build
 ```
 demo/
 ├── src/main/java/com/example/demo/    # 后端（controller/service/mapper/entity/dto/vo/config/…）
-├── src/test/java/                     # 264 条测试（Service 单测 + Controller 切片）
-├── sql/                               # V1–V10 数据库迁移脚本
+├── src/test/java/                     # 309 条测试（Service 单测 + Controller 切片）
+├── sql/                               # V1–V12 数据库迁移脚本
 ├── deploy/nginx/                      # 生产部署配置（静态托管 + API 反代，已实测）
 ├── web/                               # Vue 3 前端
 │   └── src/{api,components,layout,router,stores,views,assets}
@@ -128,12 +130,13 @@ demo/
 - [x] 阶段9 Redis 故障降级（熔断 + 本地兜底），Redis 停机不再影响带 token 请求，见测试报告 5.4
 - [x] 阶段10 生产部署验证（Nginx 静态托管 + API 反代，16 项实测通过），见 [docs/部署说明.md](docs/部署说明.md)
 - [x] 阶段11 成绩统计与考勤（ECharts 图表 / 批量点名 / 出勤率），264 后端 + 76 端到端全绿，见测试报告 6.1
+- [x] 阶段12 请假审批流（状态机 / 审批通过自动同步考勤 / 越权防护），309 后端 + 106 端到端全绿，见测试报告 4.2-K 与 5.6
 
 ## 二期可扩展（方向 C）
 
 以下功能已完成数据与接口基础，但**未实现**，属于后续独立阶段：
 
-- 考勤请假审批流（当前只有记录，没有审批状态机）
+- ~~请假审批流~~ ✅ 已完成（阶段12）；考勤按课表展开（需 course_schedule 表）
 - 成绩趋势预测 / 班级排名（`StatsMapper` 已有聚合能力，加一个 SQL 即可）
 - Excel 批量导入导出（学生名单、成绩表）
 - 多学期支持（当前 `score.exam_type` 只有 final/midterm/makeup，没有学期维度）
