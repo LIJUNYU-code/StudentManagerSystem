@@ -31,7 +31,7 @@
 
 ### 后端
 
-1. MySQL 8 中创建库 `studentmanage`，按顺序执行 `sql/` 下的迁移脚本（V1→V8）；
+1. MySQL 8 中创建库 `studentmanage`，按顺序执行 `sql/` 下的迁移脚本（V1→V13）；**执行后跑一次 `sql/verify_schema.sql`，`total_mismatches` 必须为 0**；
 2. 配置私密信息（密码不入 git）：
 
    ```bash
@@ -142,7 +142,7 @@ demo/
 ├── .github/workflows/ci.yml           # CI：后端测试 + 前端构建（push/PR 自动触发）
 ├── src/main/java/com/example/demo/    # 后端（controller/service/mapper/entity/dto/vo/config/…）
 ├── src/test/java/                     # 312 条测试（Service 单测 + Controller 切片）
-├── sql/                               # V1–V12 数据库迁移脚本
+├── sql/                               # V1–V13 数据库迁移脚本 + verify_schema.sql（只读校验）
 ├── deploy/nginx/                      # 生产部署配置（静态托管 + API 反代，已实测）
 ├── web/                               # Vue 3 前端
 │   └── src/{api,components,layout,router,stores,views,assets}
