@@ -141,6 +141,55 @@ class AdminUserControllerTest {
     }
 
     @Test
+    @DisplayName("不传任何分页参数 → page/pageSize 用默认值 1/10（不能是 null）")
+    void page_noParams_usesDefaults() throws Exception {
+        when(userService.page(any())).thenReturn(new PageResult<>(0L, List.of(), 1L, 10L));
+
+        mockMvc.perform(get("/admin/user")
+                        .header("Authorization", token(ADMIN_ID, "admin")))
+                .andExpect(status().isOk());
+
+        // 回归防线：2026-11-02 实测 GET /admin/user 曾返回 500，
+        // 原因是 UserReviewQueryDTO 的 page/pageSize 没有默认值，
+        // 缺省时是 null，Service 里 new Page<>(null, null) 直接 NPE。
+        // 这里断言的是"绑定后的 DTO 已经带上默认值"，比断言状态码更能锁死根因。
+        verify(userService).page(argThat(q ->
+                q != null
+                        && Integer.valueOf(1).equals(q.getPage())
+                        && Integer.valueOf(10).equals(q.getPageSize())));
+    }
+
+    @Test
+    @DisplayName("只传 page → pageSize 仍回落到默认 10")
+    void page_onlyPage_defaultsPageSize() throws Exception {
+        when(userService.page(any())).thenReturn(new PageResult<>(0L, List.of(), 2L, 10L));
+
+        mockMvc.perform(get("/admin/user?page=2")
+                        .header("Authorization", token(ADMIN_ID, "admin")))
+                .andExpect(status().isOk());
+
+        verify(userService).page(argThat(q ->
+                q != null
+                        && Integer.valueOf(2).equals(q.getPage())
+                        && Integer.valueOf(10).equals(q.getPageSize())));
+    }
+
+    @Test
+    @DisplayName("只传 pageSize → page 仍回落到默认 1")
+    void page_onlyPageSize_defaultsPage() throws Exception {
+        when(userService.page(any())).thenReturn(new PageResult<>(0L, List.of(), 1L, 5L));
+
+        mockMvc.perform(get("/admin/user?pageSize=5")
+                        .header("Authorization", token(ADMIN_ID, "admin")))
+                .andExpect(status().isOk());
+
+        verify(userService).page(argThat(q ->
+                q != null
+                        && Integer.valueOf(1).equals(q.getPage())
+                        && Integer.valueOf(5).equals(q.getPageSize())));
+    }
+
+    @Test
     @DisplayName("按 status=0 过滤待审核用户 → 条件正确传递")
     void page_filterByStatus() throws Exception {
         when(userService.page(any())).thenReturn(new PageResult<>(0L, List.of(), 1L, 10L));
