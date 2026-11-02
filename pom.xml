@@ -75,6 +75,22 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- Controller 层切片测试：提供 @WebMvcTest / MockMvc。
+             注意 Spring Boot 4 把 @WebMvcTest 挪到了
+             org.springframework.boot.webmvc.test.autoconfigure 包下，
+             并且需要单独引入这个 starter（starter-test 里不含它） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- 权限测试：提供 @WithMockUser / SecurityMockMvcRequestPostProcessors，
+             用于在不真登录的情况下伪造 TEACHER / ADMIN / STUDENT 身份 -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
         <!-- 参数校验 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
