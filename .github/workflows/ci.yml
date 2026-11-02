@@ -1,0 +1,106 @@
+# ============================================================
+# CI：每次 push / PR 自动跑后端测试 + 前端构建
+#
+# 【为什么这个配置可以这么短】
+# 本项目的 309 个后端测试**全部不依赖 MySQL 和 Redis**：
+#   - Service 单测（162 条）用 Mockito 打桩，不连任何外部服务
+#   - Controller 切片（147 条）用 @WebMvcTest 只起 Web 层，Mapper 不加载
+# 这一点是实测验证过的（把数据源指向不存在的端口 3999、Redis 也指 3999，
+# 309 条依然全绿），所以 CI 里不需要 services: mysql / redis。
+#
+# 如果将来加了 @SpringBootTest 连真库的集成测试，才需要在这里加 services。
+#
+# 【为什么用 ./mvnw 而不是 mvn】
+# 仓库自带 Maven Wrapper，版本锁定在 pom 里声明的分发版本，
+# 不依赖 runner 预装什么版本的 Maven——本地和 CI 用同一份。
+# ============================================================
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  # 允许在 Actions 页面手动点一下就跑，方便调试
+  workflow_dispatch:
+
+# 同一分支连续 push 时，取消掉旧的运行——省额度也省等待
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: 后端测试（JDK 25）
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # 版本必须和 pom.xml 的 <java.version> 一致（当前 25）。
+      # 不一致的话编译会报 "invalid target release"，或者跑起来报
+      # UnsupportedClassVersionError——两者都很难一眼看出是版本问题。
+      - name: 安装 JDK 25
+        uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+
+      # 缓存 ~/.m2/repository。key 里带上 pom.xml 的哈希：
+      # pom 变了缓存就失效重下，pom 没变直接命中，省掉 1~2 分钟下载。
+      - name: 缓存 Maven 依赖
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-m2-
+
+      # 注意：这里没有 -o（离线）和 -s（自定义 settings.xml）。
+      # 那两个参数是本地环境特有的（依赖在自定义仓库里、走阿里云镜像），
+      # CI 上用 Maven 中央仓库即可。写 CI 配置时最容易犯的错就是
+      # 把本地命令原样复制过去，结果在干净环境里跑不通。
+      - name: 跑全部后端测试
+        run: ./mvnw -B -ntp test
+
+      # 测试挂了也要能看到每个用例的结果，否则只能看控制台刷屏
+      - name: 上传测试报告
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: target/surefire-reports/
+          retention-days: 7
+
+  frontend:
+    name: 前端构建（Node 22）
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      # 版本要和 package.json 的 engines 字段一致
+      # （^22.18.0 || >=24.12.0），否则 npm install 会警告甚至失败
+      - name: 安装 Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+
+      # 用 ci 而不是 install：严格按 package-lock.json 安装，
+      # 不改动 lock 文件。CI 环境必须可复现，install 可能悄悄升级小版本。
+      - name: 安装依赖
+        run: npm ci
+
+      - name: 生产构建
+        run: npm run build
+
+      - name: 上传构建产物
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-dist
+          path: web/dist/
+          retention-days: 7

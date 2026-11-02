@@ -1,5 +1,11 @@
 # ClassHub — 学生一体化管理平台
 
+[![CI](https://github.com/LIJUNYU-code/StudentManagerSystem/actions/workflows/ci.yml/badge.svg)](https://github.com/LIJUNYU-code/StudentManagerSystem/actions/workflows/ci.yml)
+[![Java](https://img.shields.io/badge/Java-25-orange)](https://adoptium.net/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1.1-6DB33F)](https://spring.io/projects/spring-boot)
+[![Vue](https://img.shields.io/badge/Vue-3-42B883)](https://vuejs.org/)
+[![Tests](https://img.shields.io/badge/tests-309%20passing-brightgreen)](#测试)
+
 基于 **Spring Boot 4 + Vue 3** 的学生/班级/课程/成绩一体化管理平台。
 从最初的"学生管理系统"练习项目逐步演进而来，完整开发过程见
 [docs/project-planning/](docs/project-planning/) 与 [docs/项目总结与经验复盘.md](docs/项目总结与经验复盘.md)。
@@ -96,10 +102,44 @@ cd web && pnpm build
 > `-s "D:\develop\apache-maven-3.9.15\conf\settings.xml"`（IDEA 同款配置）；
 > 离线验证再加 `-o -Daether.syncContext.named.factory=noop`。
 
+## 测试
+
+| 层级 | 条数 | 是否连库 | 说明 |
+| --- | --- | --- | --- |
+| Service 单元测试 | 162 | ❌ | Mockito 打桩，覆盖业务规则与状态机 |
+| Controller 切片 | 147 | ❌ | `@WebMvcTest` + 真实安全过滤链，覆盖 HTTP 状态码与权限矩阵 |
+| 端到端接口测试 | 106 | ✅ | 真实 HTTP + MySQL + Redis，见 `docs/测试报告.md` |
+| **合计** | **309**（自动化）+ 106（端到端） | | |
+
+**309 条自动化测试全部不依赖 MySQL / Redis**，`./mvnw test` 在干净环境即可全绿——
+这一点经过实测验证（把数据源和 Redis 都指向不存在的端口 3999，测试依然全绿），
+所以 CI 不需要启动任何数据库服务。
+
+## 持续集成（CI）
+
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) 在每次 push 到 `main` 或提 PR 时自动执行：
+
+| Job | 内容 | 耗时（实测参考） |
+| --- | --- | --- |
+| `backend` | JDK 25 + `./mvnw -B -ntp test`，上传 surefire 报告 | 首次 ~2 分钟（含依赖下载），缓存命中 ~40 秒 |
+| `frontend` | Node 22 + `npm ci` + `npm run build`，上传 dist 产物 | ~1 分钟 |
+
+设计要点：
+
+1. **不需要 `services: mysql/redis`** —— 因为 309 条测试全是切片/单测，不碰真库。将来若加 `@SpringBootTest` 集成测试才需要。
+2. **`npm ci` 而非 `npm install`** —— 严格按 `package-lock.json` 安装，保证 CI 可复现，不会悄悄升级小版本。
+3. **Maven 缓存 key 带 `hashFiles('**/pom.xml')`** —— pom 没变直接命中缓存，变了才重新下载。
+4. **`concurrency` 取消旧运行** —— 同一分支连续 push 时自动取消上一次，省额度。
+
+> ⚠️ **本地命令不要直接复制进 CI**：本机因为依赖在自定义仓库、走阿里云镜像，
+> 需要 `-s <settings.xml> -o`。CI 上没有那个文件、也走中央仓库，加了反而失败。
+> 这正是本地验证第 3 步的意义——用**去掉本地参数后**的命令实测。
+
 ## 项目结构
 
 ```
 demo/
+├── .github/workflows/ci.yml           # CI：后端测试 + 前端构建（push/PR 自动触发）
 ├── src/main/java/com/example/demo/    # 后端（controller/service/mapper/entity/dto/vo/config/…）
 ├── src/test/java/                     # 309 条测试（Service 单测 + Controller 切片）
 ├── sql/                               # V1–V12 数据库迁移脚本
@@ -109,7 +149,7 @@ demo/
 └── docs/
     ├── project-planning/              # 五份规划文档（现状/方向/技术方案/资料/路线图）
     ├── learning/                      # 前端学习课程
-    ├── 测试报告.md                     # 全量测试记录（264 后端 + 76 端到端）
+    ├── 测试报告.md                     # 全量测试记录（309 后端 + 106 端到端）
     ├── 部署说明.md                     # 打包与部署
     ├── 项目总结与经验复盘.md
     └── 验收测试清单.md
@@ -131,6 +171,7 @@ demo/
 - [x] 阶段10 生产部署验证（Nginx 静态托管 + API 反代，16 项实测通过），见 [docs/部署说明.md](docs/部署说明.md)
 - [x] 阶段11 成绩统计与考勤（ECharts 图表 / 批量点名 / 出勤率），264 后端 + 76 端到端全绿，见测试报告 6.1
 - [x] 阶段12 请假审批流（状态机 / 审批通过自动同步考勤 / 越权防护），309 后端 + 106 端到端全绿，见测试报告 4.2-K 与 5.6
+- [x] 阶段13 持续集成（GitHub Actions：后端测试 + 前端构建，push/PR 自动触发）
 
 ## 二期可扩展（方向 C）
 
