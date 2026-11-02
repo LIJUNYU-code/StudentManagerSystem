@@ -93,8 +93,9 @@ cd web && pnpm build
 ```
 demo/
 ├── src/main/java/com/example/demo/    # 后端（controller/service/mapper/entity/dto/config/…）
-├── src/test/java/                     # 单元测试（JwtUtil / StudentServiceImpl）
+├── src/test/java/                     # 208 条测试（Service 单测 + Controller 切片）
 ├── sql/                               # V1–V8 数据库迁移脚本
+├── deploy/nginx/                      # 生产部署配置（静态托管 + API 反代，已实测）
 ├── web/                               # Vue 3 前端
 │   └── src/{api,layout,router,stores,views,assets}
 └── docs/
@@ -119,3 +120,4 @@ demo/
 - [x] 阶段7 Redis 登出黑名单 + 改密强制下线（JWT 主动作废）
 - [x] 阶段8 全量测试（208 后端 + 51 端到端）与 P0/P1 缺陷修复，见 [docs/测试报告.md](docs/测试报告.md)
 - [x] 阶段9 Redis 故障降级（熔断 + 本地兜底），Redis 停机不再影响带 token 请求，见测试报告 5.4
+- [x] 阶段10 生产部署验证（Nginx 静态托管 + API 反代，16 项实测通过），见 [docs/部署说明.md](docs/部署说明.md)

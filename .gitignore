@@ -63,3 +63,7 @@ mysql-start.out.txt
 ### Learning sandboxes (personal practice, not part of the project) ###
 web/learn/
 web/learn-vue/
+
+### Nginx (deploy) ###
+# 只忽略运行时日志，配置本身要入库
+deploy/nginx/logs/
