@@ -65,5 +65,8 @@ web/learn/
 web/learn-vue/
 
 ### Nginx (deploy) ###
-# 只忽略运行时日志，配置本身要入库
-deploy/nginx/logs/
+# 只忽略运行时日志与临时缓冲，配置本身要入库
+deploy/nginx/logs/*
+!deploy/nginx/logs/.gitkeep
+deploy/nginx/temp/*
+!deploy/nginx/temp/.gitkeep

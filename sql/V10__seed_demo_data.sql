@@ -10,7 +10,7 @@
 -- 全部使用 INSERT IGNORE / WHERE NOT EXISTS，重复执行不会报错、不会产生重复数据。
 --
 -- 【账号说明】
--- 20 个种子学生的登录密码统一为 Admin@123456
+-- 20 个种子学生的登录密码统一为 Demo@2026
 -- （复用了 V4 里 admin 的 BCrypt 哈希；BCrypt 是加盐哈希，同密码不同账号用同一哈希
 --  在本项目这种演示数据场景下可接受。生产环境不应这样做。）
 -- 学号：S202500101 ~ S202500120
@@ -28,26 +28,26 @@ INSERT IGNORE INTO clazz (name, grade) VALUES ('软件2302班', '2023级');
 -- ---------- 2. 学生（20 人，每班 10 人）----------
 -- clazz_id 通过子查询取，避免依赖自增 id 的具体数值
 INSERT IGNORE INTO student (student_no, clazz_id, name, gender, age, phone, password)
-SELECT 'S202500101', c.id, '陈嘉明', 0, 19, '13800000101', '$2a$10$YXgSavvk7Exrqn2ZG4NsZemLeqOC8BsG6obJ1NjK/WZ.eC/YDCFma' FROM clazz c WHERE c.name = '软件2301班'
-UNION ALL SELECT 'S202500102', c.id, '林小雨', 1, 19, '13800000102', '$2a$10$YXgSavvk7Exrqn2ZG4NsZemLeqOC8BsG6obJ1NjK/WZ.eC/YDCFma' FROM clazz c WHERE c.name = '软件2301班'
-UNION ALL SELECT 'S202500103', c.id, '黄志强', 0, 20, '13800000103', '$2a$10$YXgSavvk7Exrqn2ZG4NsZemLeqOC8BsG6obJ1NjK/WZ.eC/YDCFma' FROM clazz c WHERE c.name = '软件2301班'
-UNION ALL SELECT 'S202500104', c.id, '吴静怡', 1, 19, '13800000104', '$2a$10$YXgSavvk7Exrqn2ZG4NsZemLeqOC8BsG6obJ1NjK/WZ.eC/YDCFma' FROM clazz c WHERE c.name = '软件2301班'
-UNION ALL SELECT 'S202500105', c.id, '周浩然', 0, 20, '13800000105', '$2a$10$YXgSavvk7Exrqn2ZG4NsZemLeqOC8BsG6obJ1NjK/WZ.eC/YDCFma' FROM clazz c WHERE c.name = '软件2301班'
-UNION ALL SELECT 'S202500106', c.id, '郑雅琪', 1, 19, '13800000106', '$2a$10$YXgSavvk7Exrqn2ZG4NsZemLeqOC8BsG6obJ1NjK/WZ.eC/YDCFma' FROM clazz c WHERE c.name = '软件2301班'
-UNION ALL SELECT 'S202500107', c.id, '孙博文', 0, 20, '13800000107', '$2a$10$YXgSavvk7Exrqn2ZG4NsZemLeqOC8BsG6obJ1NjK/WZ.eC/YDCFma' FROM clazz c WHERE c.name = '软件2301班'
-UNION ALL SELECT 'S202500108', c.id, '马晓雯', 1, 19, '13800000108', '$2a$10$YXgSavvk7Exrqn2ZG4NsZemLeqOC8BsG6obJ1NjK/WZ.eC/YDCFma' FROM clazz c WHERE c.name = '软件2301班'
-UNION ALL SELECT 'S202500109', c.id, '朱伟东', 0, 20, '13800000109', '$2a$10$YXgSavvk7Exrqn2ZG4NsZemLeqOC8BsG6obJ1NjK/WZ.eC/YDCFma' FROM clazz c WHERE c.name = '软件2301班'
-UNION ALL SELECT 'S202500110', c.id, '胡佳怡', 1, 19, '13800000110', '$2a$10$YXgSavvk7Exrqn2ZG4NsZemLeqOC8BsG6obJ1NjK/WZ.eC/YDCFma' FROM clazz c WHERE c.name = '软件2301班'
-UNION ALL SELECT 'S202500111', c.id, '徐子豪', 0, 19, '13800000111', '$2a$10$YXgSavvk7Exrqn2ZG4NsZemLeqOC8BsG6obJ1NjK/WZ.eC/YDCFma' FROM clazz c WHERE c.name = '软件2302班'
-UNION ALL SELECT 'S202500112', c.id, '何雨桐', 1, 20, '13800000112', '$2a$10$YXgSavvk7Exrqn2ZG4NsZemLeqOC8BsG6obJ1NjK/WZ.eC/YDCFma' FROM clazz c WHERE c.name = '软件2302班'
-UNION ALL SELECT 'S202500113', c.id, '罗俊杰', 0, 19, '13800000113', '$2a$10$YXgSavvk7Exrqn2ZG4NsZemLeqOC8BsG6obJ1NjK/WZ.eC/YDCFma' FROM clazz c WHERE c.name = '软件2302班'
-UNION ALL SELECT 'S202500114', c.id, '高欣妍', 1, 20, '13800000114', '$2a$10$YXgSavvk7Exrqn2ZG4NsZemLeqOC8BsG6obJ1NjK/WZ.eC/YDCFma' FROM clazz c WHERE c.name = '软件2302班'
-UNION ALL SELECT 'S202500115', c.id, '梁泽楷', 0, 19, '13800000115', '$2a$10$YXgSavvk7Exrqn2ZG4NsZemLeqOC8BsG6obJ1NjK/WZ.eC/YDCFma' FROM clazz c WHERE c.name = '软件2302班'
-UNION ALL SELECT 'S202500116', c.id, '谢若琳', 1, 20, '13800000116', '$2a$10$YXgSavvk7Exrqn2ZG4NsZemLeqOC8BsG6obJ1NjK/WZ.eC/YDCFma' FROM clazz c WHERE c.name = '软件2302班'
-UNION ALL SELECT 'S202500117', c.id, '唐家豪', 0, 19, '13800000117', '$2a$10$YXgSavvk7Exrqn2ZG4NsZemLeqOC8BsG6obJ1NjK/WZ.eC/YDCFma' FROM clazz c WHERE c.name = '软件2302班'
-UNION ALL SELECT 'S202500118', c.id, '曾诗涵', 1, 20, '13800000118', '$2a$10$YXgSavvk7Exrqn2ZG4NsZemLeqOC8BsG6obJ1NjK/WZ.eC/YDCFma' FROM clazz c WHERE c.name = '软件2302班'
-UNION ALL SELECT 'S202500119', c.id, '邓凯文', 0, 19, '13800000119', '$2a$10$YXgSavvk7Exrqn2ZG4NsZemLeqOC8BsG6obJ1NjK/WZ.eC/YDCFma' FROM clazz c WHERE c.name = '软件2302班'
-UNION ALL SELECT 'S202500120', c.id, '许梦洁', 1, 20, '13800000120', '$2a$10$YXgSavvk7Exrqn2ZG4NsZemLeqOC8BsG6obJ1NjK/WZ.eC/YDCFma' FROM clazz c WHERE c.name = '软件2302班';
+SELECT 'S202500101', c.id, '陈嘉明', 0, 19, '13800000101', '$2a$10$XV8AaxjOFQIn4FIsZs3ceeXqAQtXyOteqox9RBOW5B7z7Jx25OT8G' FROM clazz c WHERE c.name = '软件2301班'
+UNION ALL SELECT 'S202500102', c.id, '林小雨', 1, 19, '13800000102', '$2a$10$XV8AaxjOFQIn4FIsZs3ceeXqAQtXyOteqox9RBOW5B7z7Jx25OT8G' FROM clazz c WHERE c.name = '软件2301班'
+UNION ALL SELECT 'S202500103', c.id, '黄志强', 0, 20, '13800000103', '$2a$10$XV8AaxjOFQIn4FIsZs3ceeXqAQtXyOteqox9RBOW5B7z7Jx25OT8G' FROM clazz c WHERE c.name = '软件2301班'
+UNION ALL SELECT 'S202500104', c.id, '吴静怡', 1, 19, '13800000104', '$2a$10$XV8AaxjOFQIn4FIsZs3ceeXqAQtXyOteqox9RBOW5B7z7Jx25OT8G' FROM clazz c WHERE c.name = '软件2301班'
+UNION ALL SELECT 'S202500105', c.id, '周浩然', 0, 20, '13800000105', '$2a$10$XV8AaxjOFQIn4FIsZs3ceeXqAQtXyOteqox9RBOW5B7z7Jx25OT8G' FROM clazz c WHERE c.name = '软件2301班'
+UNION ALL SELECT 'S202500106', c.id, '郑雅琪', 1, 19, '13800000106', '$2a$10$XV8AaxjOFQIn4FIsZs3ceeXqAQtXyOteqox9RBOW5B7z7Jx25OT8G' FROM clazz c WHERE c.name = '软件2301班'
+UNION ALL SELECT 'S202500107', c.id, '孙博文', 0, 20, '13800000107', '$2a$10$XV8AaxjOFQIn4FIsZs3ceeXqAQtXyOteqox9RBOW5B7z7Jx25OT8G' FROM clazz c WHERE c.name = '软件2301班'
+UNION ALL SELECT 'S202500108', c.id, '马晓雯', 1, 19, '13800000108', '$2a$10$XV8AaxjOFQIn4FIsZs3ceeXqAQtXyOteqox9RBOW5B7z7Jx25OT8G' FROM clazz c WHERE c.name = '软件2301班'
+UNION ALL SELECT 'S202500109', c.id, '朱伟东', 0, 20, '13800000109', '$2a$10$XV8AaxjOFQIn4FIsZs3ceeXqAQtXyOteqox9RBOW5B7z7Jx25OT8G' FROM clazz c WHERE c.name = '软件2301班'
+UNION ALL SELECT 'S202500110', c.id, '胡佳怡', 1, 19, '13800000110', '$2a$10$XV8AaxjOFQIn4FIsZs3ceeXqAQtXyOteqox9RBOW5B7z7Jx25OT8G' FROM clazz c WHERE c.name = '软件2301班'
+UNION ALL SELECT 'S202500111', c.id, '徐子豪', 0, 19, '13800000111', '$2a$10$XV8AaxjOFQIn4FIsZs3ceeXqAQtXyOteqox9RBOW5B7z7Jx25OT8G' FROM clazz c WHERE c.name = '软件2302班'
+UNION ALL SELECT 'S202500112', c.id, '何雨桐', 1, 20, '13800000112', '$2a$10$XV8AaxjOFQIn4FIsZs3ceeXqAQtXyOteqox9RBOW5B7z7Jx25OT8G' FROM clazz c WHERE c.name = '软件2302班'
+UNION ALL SELECT 'S202500113', c.id, '罗俊杰', 0, 19, '13800000113', '$2a$10$XV8AaxjOFQIn4FIsZs3ceeXqAQtXyOteqox9RBOW5B7z7Jx25OT8G' FROM clazz c WHERE c.name = '软件2302班'
+UNION ALL SELECT 'S202500114', c.id, '高欣妍', 1, 20, '13800000114', '$2a$10$XV8AaxjOFQIn4FIsZs3ceeXqAQtXyOteqox9RBOW5B7z7Jx25OT8G' FROM clazz c WHERE c.name = '软件2302班'
+UNION ALL SELECT 'S202500115', c.id, '梁泽楷', 0, 19, '13800000115', '$2a$10$XV8AaxjOFQIn4FIsZs3ceeXqAQtXyOteqox9RBOW5B7z7Jx25OT8G' FROM clazz c WHERE c.name = '软件2302班'
+UNION ALL SELECT 'S202500116', c.id, '谢若琳', 1, 20, '13800000116', '$2a$10$XV8AaxjOFQIn4FIsZs3ceeXqAQtXyOteqox9RBOW5B7z7Jx25OT8G' FROM clazz c WHERE c.name = '软件2302班'
+UNION ALL SELECT 'S202500117', c.id, '唐家豪', 0, 19, '13800000117', '$2a$10$XV8AaxjOFQIn4FIsZs3ceeXqAQtXyOteqox9RBOW5B7z7Jx25OT8G' FROM clazz c WHERE c.name = '软件2302班'
+UNION ALL SELECT 'S202500118', c.id, '曾诗涵', 1, 20, '13800000118', '$2a$10$XV8AaxjOFQIn4FIsZs3ceeXqAQtXyOteqox9RBOW5B7z7Jx25OT8G' FROM clazz c WHERE c.name = '软件2302班'
+UNION ALL SELECT 'S202500119', c.id, '邓凯文', 0, 19, '13800000119', '$2a$10$XV8AaxjOFQIn4FIsZs3ceeXqAQtXyOteqox9RBOW5B7z7Jx25OT8G' FROM clazz c WHERE c.name = '软件2302班'
+UNION ALL SELECT 'S202500120', c.id, '许梦洁', 1, 20, '13800000120', '$2a$10$XV8AaxjOFQIn4FIsZs3ceeXqAQtXyOteqox9RBOW5B7z7Jx25OT8G' FROM clazz c WHERE c.name = '软件2302班';
 
 -- ---------- 3. 课程（3 门）----------
 INSERT IGNORE INTO course (name, credit) VALUES ('数据结构', 3.5);
