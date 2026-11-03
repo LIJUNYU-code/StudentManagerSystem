@@ -59,8 +59,58 @@ jobs:
       # 那两个参数是本地环境特有的（依赖在自定义仓库里、走阿里云镜像），
       # CI 上用 Maven 中央仓库即可。写 CI 配置时最容易犯的错就是
       # 把本地命令原样复制过去，结果在干净环境里跑不通。
+      # 【为什么加 tee build.log 和 pipefail】
+      # GitHub 的 Actions 日志只有登录后才能看，公开仓库的失败原因在页面上
+      # 只显示一句 "Process completed with exit code 1"。为了在不登录的情况下
+      # 也能定位失败，这里把完整输出同时存一份到 build.log，
+      # 下一步再从中提取关键行写进 Job Summary（运行页面直接可见）。
+      # pipefail 必须加：不加的话管道只看 tee 的退出码，Maven 失败会被吞掉，
+      # CI 会「绿着」放过一个挂掉的测试。
       - name: 跑全部后端测试
-        run: ./mvnw -B -ntp test
+        shell: bash
+        run: |
+          set -o pipefail
+          ./mvnw -B -ntp test 2>&1 | tee build.log
+
+      # 失败时把原因写进 Job Summary：运行页面不用登录日志就能看到
+      - name: 汇总失败原因
+        if: failure()
+        shell: bash
+        run: |
+          {
+            echo "## 后端测试失败"
+            echo ""
+            if [ -f build.log ]; then
+              echo '### Maven 输出中的错误行（前 40 条）'
+              echo '```'
+              grep -E '^\[ERROR\]' build.log | head -40 || echo '（无 [ERROR] 行）'
+              echo '```'
+              echo ""
+              echo '### 失败或报错的用例'
+              echo '```'
+              grep -h -E '^\[ERROR\].*(Tests run:|<<< (FAILURE|ERROR))' build.log | head -40 || echo '（无失败用例行）'
+              echo '```'
+            else
+              echo '没有 build.log，说明失败发生在测试命令启动之前'
+            fi
+            if [ -d target/surefire-reports ]; then
+              echo ""
+              echo "### surefire 报告文件数：$(ls target/surefire-reports/*.txt 2>/dev/null | wc -l)"
+            else
+              echo ""
+              echo '### 没有 target/surefire-reports（失败在编译/依赖阶段，测试未执行）'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          # 【为什么还要再打印一遍 ::error::】
+          # Job Summary 是网页渲染的，脚本/接口读不到；而 workflow command
+          # 写出的注解会进 check-runs 的 annotations 接口，不登录也能取到。
+          # 这样失败原因既能给人看，也能被自动化读取。
+          if [ -f build.log ]; then
+            grep -E '^\[ERROR\]' build.log | head -8 | while IFS= read -r line; do
+              echo "::error::${line}"
+            done
+          fi
 
       # 测试挂了也要能看到每个用例的结果，否则只能看控制台刷屏
       - name: 上传测试报告
@@ -68,8 +118,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: surefire-reports
-          path: target/surefire-reports/
+          path: |
+            target/surefire-reports/
+            build.log
           retention-days: 7
+          if-no-files-found: warn
 
   frontend:
     name: 前端构建（Node 22）
