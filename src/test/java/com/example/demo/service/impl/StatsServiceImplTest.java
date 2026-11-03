@@ -8,6 +8,8 @@ import com.example.demo.service.impl.StatsServiceImpl;
 import com.example.demo.vo.CourseAvgVO;
 import com.example.demo.vo.CourseSummaryVO;
 import com.example.demo.vo.ScoreBucketVO;
+import com.example.demo.support.TableInfoTestSupport;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -48,6 +50,12 @@ class StatsServiceImplTest {
 
     private static final Long COURSE_ID = 10L;
     private static final Long CLAZZ_ID = 3L;
+
+    /** 纯 Mockito 测试没有 Spring 上下文，需手动注册 MyBatis-Plus 实体元数据（见 TableInfoTestSupport）。 */
+    @BeforeAll
+    static void initTableInfo() {
+        TableInfoTestSupport.initAll();
+    }
 
     @BeforeEach
     void setUp() {

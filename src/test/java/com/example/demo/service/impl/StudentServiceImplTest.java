@@ -11,6 +11,8 @@ import com.example.demo.exception.StudentAlreadyExistsException;
 import com.example.demo.exception.StudentNotFoundException;
 import com.example.demo.mapper.StudentMapper;
 import com.example.demo.util.JwtUtil;
+import com.example.demo.support.TableInfoTestSupport;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -47,6 +49,12 @@ class StudentServiceImplTest {
     private com.example.demo.mapper.ClazzMapper clazzMapper;
 
     private StudentServiceImpl service;
+
+    /** 纯 Mockito 测试没有 Spring 上下文，需手动注册 MyBatis-Plus 实体元数据（见 TableInfoTestSupport）。 */
+    @BeforeAll
+    static void initTableInfo() {
+        TableInfoTestSupport.initAll();
+    }
 
     @BeforeEach
     void setUp() {

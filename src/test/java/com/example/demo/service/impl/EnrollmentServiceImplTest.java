@@ -14,6 +14,8 @@ import com.example.demo.mapper.EnrollmentMapper;
 import com.example.demo.mapper.ScoreMapper;
 import com.example.demo.mapper.StudentMapper;
 import com.example.demo.vo.EnrollmentResponse;
+import com.example.demo.support.TableInfoTestSupport;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -51,6 +53,12 @@ class EnrollmentServiceImplTest {
     private ScoreMapper scoreMapper;
 
     private EnrollmentServiceImpl service;
+
+    /** 纯 Mockito 测试没有 Spring 上下文，需手动注册 MyBatis-Plus 实体元数据（见 TableInfoTestSupport）。 */
+    @BeforeAll
+    static void initTableInfo() {
+        TableInfoTestSupport.initAll();
+    }
 
     @BeforeEach
     void setUp() {

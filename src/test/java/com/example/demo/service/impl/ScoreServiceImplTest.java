@@ -14,6 +14,8 @@ import com.example.demo.mapper.ScoreMapper;
 import com.example.demo.mapper.StudentMapper;
 import com.example.demo.vo.ScoreResponse;
 import org.junit.jupiter.api.AfterEach;
+import com.example.demo.support.TableInfoTestSupport;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -56,6 +58,17 @@ class ScoreServiceImplTest {
     private CourseMapper courseMapper;
 
     private ScoreServiceImpl service;
+
+    /**
+     * 纯 Mockito 测试没有 Spring 上下文，MyBatis-Plus 的实体元数据（表名/列名映射）
+     * 不会自动初始化；被测 Service 里的 LambdaQueryWrapper 需要它把
+     * {@code Score::getEnrollmentId} 翻译成列名，否则抛
+     * "can not find lambda cache for this entity"。
+     */
+    @BeforeAll
+    static void initTableInfo() {
+        TableInfoTestSupport.initAll();
+    }
 
     @BeforeEach
     void setUp() {
