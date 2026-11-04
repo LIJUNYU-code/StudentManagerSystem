@@ -1,6 +1,6 @@
 package com.example.demo.dto;
 
-import jakarta.validation.constraints.NotBlank;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
@@ -13,10 +13,12 @@ import lombok.Data;
  * 而且校验起来要写一堆"status 只能是 1 或 2"。
  * 用两个接口把意图写进 URL，是最清晰的表达方式。
  */
+@Schema(description = "审批请假的请求体（通过/驳回都由调用的接口决定，本对象只有审批意见）")
 @Data
 public class LeaveReviewDTO {
 
     /** 审批意见（可选，驳回时建议填写原因） */
+    @Schema(description = "审批意见，最多 300 字，可选。驳回时建议填写原因", example = "已核实，准假")
     @Size(max = 300, message = "审批意见最多 300 字")
     private String remark;
 

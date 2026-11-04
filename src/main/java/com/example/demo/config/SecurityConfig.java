@@ -39,7 +39,13 @@ public class SecurityConfig {
                                 "/student/login",
                                 "/student/register",
                                 "/auth/register",
-                                "/auth/login"
+                                "/auth/login",
+                                // 接口文档（springdoc）：这三个路径必须匿名放行，
+                                // 否则想看文档还得先拿 token，等于自己把自己锁在门外。
+                                // 生产环境如不希望公开，可用 springdoc.api-docs.enabled=false 关掉。
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

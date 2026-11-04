@@ -1,5 +1,6 @@
 package com.example.demo.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 
@@ -7,19 +8,24 @@ import jakarta.validation.constraints.Min;
  * 学生分页查询条件（GET 查询用 @ModelAttribute 绑定，不用 @RequestBody）。
  * GET + 查询参数的接口天然可收藏、可缓存、可重试，符合 REST 语义。
  */
+@Schema(description = "学生分页查询条件")
 public class StudentQueryDTO {
 
     /** 关键词：匹配姓名或学号（模糊查询，可为空=不过滤） */
+    @Schema(description = "关键词，模糊匹配姓名或学号，不传则不过滤", example = "张")
     private String keyword;
 
     /** 班级过滤（可为空） */
+    @Schema(description = "班级 id 过滤，不传则查全部班级", example = "1")
     private Long clazzId;
 
     /** 页码，从 1 开始 */
+    @Schema(description = "页码，从 1 开始", example = "1", defaultValue = "1")
     @Min(value = 1, message = "页码最小为 1")
     private Integer page = 1;
 
     /** 每页条数，上限 100，防止一次拉全表 */
+    @Schema(description = "每页条数，上限 100", example = "10", defaultValue = "10")
     @Min(value = 1, message = "每页条数最小为 1")
     @Max(value = 100, message = "每页条数最大为 100")
     private Integer size = 10;
